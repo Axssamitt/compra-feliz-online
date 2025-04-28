@@ -1,31 +1,36 @@
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Product, ProductFormData } from '@/types/product';
 import { mockProducts } from '@/data/mockProducts';
 import { toast } from 'sonner';
 
-interface CartItem {
-  product: Product;
-  quantity: number;
-}
-
 interface StoreContextType {
   products: Product[];
-  cartItems: CartItem[];
   addProduct: (product: ProductFormData) => void;
   editProduct: (id: string, product: ProductFormData) => void;
   deleteProduct: (id: string) => void;
-  addToCart: (product: Product, quantity: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateCartItemQuantity: (productId: string, quantity: number) => void;
-  getCartTotal: () => number;
+  login: (username: string, password: string) => boolean;
+  logout: () => void;
+  isLoggedIn: boolean;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
+// Admin credentials - in a real app, this would be in the backend
+const ADMIN_USERNAME = 'admin';
+const ADMIN_PASSWORD = 'admin123';
+
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  // Check if the user is logged in on component mount
+  useEffect(() => {
+    const loggedIn = localStorage.getItem('rj-admin-logged-in');
+    if (loggedIn === 'true') {
+      setIsLoggedIn(true);
+    }
+  }, []);
 
   const addProduct = (product: ProductFormData) => {
     const newProduct = {
@@ -48,57 +53,32 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     toast.success("Product deleted successfully!");
   };
 
-  const addToCart = (product: Product, quantity: number) => {
-    setCartItems((prev) => {
-      const existingItem = prev.find((item) => item.product.id === product.id);
-      if (existingItem) {
-        return prev.map((item) =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      return [...prev, { product, quantity }];
-    });
-    toast.success("Added to cart!");
-  };
-
-  const removeFromCart = (productId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.product.id !== productId));
-  };
-
-  const updateCartItemQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
+  const login = (username: string, password: string) => {
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+      setIsLoggedIn(true);
+      // Store login status in localStorage
+      localStorage.setItem('rj-admin-logged-in', 'true');
+      return true;
     }
-
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
-      )
-    );
+    return false;
   };
 
-  const getCartTotal = () => {
-    return cartItems.reduce(
-      (total, item) => total + item.product.price * item.quantity,
-      0
-    );
+  const logout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem('rj-admin-logged-in');
+    toast.success("Você foi desconectado com sucesso.");
   };
 
   return (
     <StoreContext.Provider
       value={{
         products,
-        cartItems,
         addProduct,
         editProduct,
         deleteProduct,
-        addToCart,
-        removeFromCart,
-        updateCartItemQuantity,
-        getCartTotal,
+        login,
+        logout,
+        isLoggedIn
       }}
     >
       {children}

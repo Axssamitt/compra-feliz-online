@@ -1,16 +1,19 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { ShoppingCart } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { LogIn, LogOut } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
-import { Badge } from '@/components/ui/badge';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { cartItems } = useStore();
+  const { isLoggedIn, logout } = useStore();
+  const navigate = useNavigate();
   
-  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <header className="bg-black border-b border-gold-500/30 sticky top-0 z-30">
@@ -27,20 +30,28 @@ const Header = () => {
         <nav className="hidden md:flex items-center space-x-6">
           <Link to="/" className="text-white hover:text-gold-400 font-medium">Home</Link>
           <Link to="/products" className="text-white hover:text-gold-400 font-medium">Produtos</Link>
-          <Link to="/admin" className="text-white hover:text-gold-400 font-medium">Admin</Link>
+          {isLoggedIn && (
+            <Link to="/admin" className="text-white hover:text-gold-400 font-medium">Admin</Link>
+          )}
         </nav>
         
         <div className="flex items-center gap-4">
-          <Link to="/cart" className="relative">
-            <Button variant="ghost" size="icon" className="text-gold-400 hover:text-gold-300 hover:bg-black/40">
-              <ShoppingCart className="h-5 w-5" />
-              {totalItems > 0 && (
-                <Badge className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-gold-500 text-black">
-                  {totalItems}
-                </Badge>
-              )}
+          {isLoggedIn ? (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-gold-400 hover:text-gold-300 hover:bg-black/40"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-5 w-5" />
             </Button>
-          </Link>
+          ) : (
+            <Link to="/login">
+              <Button variant="ghost" size="icon" className="text-gold-400 hover:text-gold-300 hover:bg-black/40">
+                <LogIn className="h-5 w-5" />
+              </Button>
+            </Link>
+          )}
           
           {/* Mobile Menu Button */}
           <Button 
@@ -62,7 +73,31 @@ const Header = () => {
           <nav className="flex flex-col space-y-3 pb-3">
             <Link to="/" className="text-white hover:text-gold-400 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Home</Link>
             <Link to="/products" className="text-white hover:text-gold-400 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Produtos</Link>
-            <Link to="/admin" className="text-white hover:text-gold-400 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Admin</Link>
+            {isLoggedIn && (
+              <Link to="/admin" className="text-white hover:text-gold-400 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Admin</Link>
+            )}
+            {isLoggedIn ? (
+              <Button 
+                variant="ghost" 
+                className="text-gold-400 hover:text-gold-300 justify-start p-2"
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }}
+              >
+                <LogOut className="h-5 w-5 mr-2" />
+                Sair
+              </Button>
+            ) : (
+              <Link 
+                to="/login" 
+                className="text-gold-400 hover:text-gold-300 font-medium py-2 flex items-center" 
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <LogIn className="h-5 w-5 mr-2" />
+                Login
+              </Link>
+            )}
           </nav>
         </div>
       )}
