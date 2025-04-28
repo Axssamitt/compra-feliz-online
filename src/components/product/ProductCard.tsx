@@ -19,7 +19,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden transition-shadow hover:shadow-lg">
+    <Card className="h-full flex flex-col overflow-hidden transition-shadow hover:shadow-lg border-gold-500/30 bg-black">
       <div className="relative pt-[100%]">
         <img
           src={product.imageUrl}
@@ -30,25 +30,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           }}
         />
         {product.featured && (
-          <span className="absolute top-2 right-2 bg-teal-500 text-white text-xs font-bold px-2 py-1 rounded-md">
-            Featured
+          <span className="absolute top-2 right-2 bg-gold-500 text-black text-xs font-bold px-2 py-1 rounded-md">
+            Destaque
           </span>
         )}
       </div>
       <CardContent className="py-4 flex-grow">
         <div className="mb-2 flex justify-between items-start">
-          <h3 className="font-semibold text-lg line-clamp-2">{product.name}</h3>
-          <span className="font-bold text-teal-600">R${product.price.toFixed(2)}</span>
+          <h3 className="font-semibold text-lg line-clamp-2 text-white">{product.name}</h3>
+          <span className="font-bold text-gold-400">R${product.price.toFixed(2)}</span>
         </div>
-        <p className="text-gray-600 text-sm line-clamp-3">{product.description}</p>
+        <p className="text-gray-300 text-sm line-clamp-3">{product.description}</p>
       </CardContent>
       <CardFooter className="pt-0 pb-4 flex justify-between gap-2">
-        <Button asChild variant="outline" className="w-1/2">
-          <Link to={`/products/${product.id}`}>Details</Link>
+        <Button asChild variant="outline" className="w-1/2 border-gold-500/50 text-gold-400 hover:bg-gold-500 hover:text-black">
+          <Link to={`/products/${product.id}`}>Detalhes</Link>
         </Button>
-        <Button onClick={handleAddToCart} className="w-1/2 bg-teal-600 hover:bg-teal-700">
+        <Button onClick={handleAddToCart} className="w-1/2 bg-gold-500 hover:bg-gold-400 text-black">
           <ShoppingCart className="h-4 w-4 mr-2" />
-          Add
+          Adicionar
         </Button>
       </CardFooter>
     </Card>

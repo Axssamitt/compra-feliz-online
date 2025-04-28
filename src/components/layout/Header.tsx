@@ -13,23 +13,29 @@ const Header = () => {
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+    <header className="bg-black border-b border-gold-500/30 sticky top-0 z-30">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link to="/" className="text-2xl font-bold text-teal-600">Compra Feliz</Link>
+        <Link to="/" className="flex items-center">
+          <img 
+            src="/lovable-uploads/9c6e1f83-ca8c-40bf-bddf-1037a148d865.png" 
+            alt="R&J Ecommerce" 
+            className="h-12"
+          />
+        </Link>
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
-          <Link to="/" className="text-gray-700 hover:text-teal-600 font-medium">Home</Link>
-          <Link to="/products" className="text-gray-700 hover:text-teal-600 font-medium">Products</Link>
-          <Link to="/admin" className="text-gray-700 hover:text-teal-600 font-medium">Admin</Link>
+          <Link to="/" className="text-white hover:text-gold-400 font-medium">Home</Link>
+          <Link to="/products" className="text-white hover:text-gold-400 font-medium">Produtos</Link>
+          <Link to="/admin" className="text-white hover:text-gold-400 font-medium">Admin</Link>
         </nav>
         
         <div className="flex items-center gap-4">
           <Link to="/cart" className="relative">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="text-gold-400 hover:text-gold-300 hover:bg-black/40">
               <ShoppingCart className="h-5 w-5" />
               {totalItems > 0 && (
-                <Badge className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-teal-500 text-white">
+                <Badge className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-gold-500 text-black">
                   {totalItems}
                 </Badge>
               )}
@@ -40,7 +46,7 @@ const Header = () => {
           <Button 
             variant="ghost" 
             size="icon"
-            className="md:hidden"
+            className="md:hidden text-gold-400 hover:text-gold-300 hover:bg-black/40"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
@@ -52,11 +58,11 @@ const Header = () => {
       
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden px-4 py-2 bg-white border-t border-gray-200">
+        <div className="md:hidden px-4 py-2 bg-black border-t border-gold-500/30">
           <nav className="flex flex-col space-y-3 pb-3">
-            <Link to="/" className="text-gray-700 hover:text-teal-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Home</Link>
-            <Link to="/products" className="text-gray-700 hover:text-teal-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Products</Link>
-            <Link to="/admin" className="text-gray-700 hover:text-teal-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Admin</Link>
+            <Link to="/" className="text-white hover:text-gold-400 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Home</Link>
+            <Link to="/products" className="text-white hover:text-gold-400 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Produtos</Link>
+            <Link to="/admin" className="text-white hover:text-gold-400 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Admin</Link>
           </nav>
         </div>
       )}
