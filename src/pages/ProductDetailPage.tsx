@@ -3,13 +3,12 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '@/context/StoreContext';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, ArrowLeft, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { products, addToCart } = useStore();
+  const { products } = useStore();
   const navigate = useNavigate();
   
   const product = products.find(p => p.id === id);
@@ -26,21 +25,14 @@ const ProductDetailPage = () => {
     );
   }
   
-  const handleAddToCart = () => {
-    addToCart(product, 1);
+  const handleGoBack = () => {
+    navigate(-1);
   };
   
   const handleBuyNow = () => {
     if (product.paymentLink) {
       window.open(product.paymentLink, '_blank');
-    } else {
-      addToCart(product, 1);
-      navigate('/cart');
     }
-  };
-  
-  const handleGoBack = () => {
-    navigate(-1);
   };
   
   return (
@@ -68,12 +60,12 @@ const ProductDetailPage = () => {
             <div className="flex items-start justify-between">
               <h1 className="text-3xl font-bold">{product.name}</h1>
               {product.featured && (
-                <span className="bg-teal-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                  Featured
+                <span className="bg-gold-500 text-black px-3 py-1 rounded-full text-sm font-medium">
+                  Destaque
                 </span>
               )}
             </div>
-            <p className="text-2xl font-bold text-teal-600 mt-2">
+            <p className="text-2xl font-bold text-gold-400 mt-2">
               R${product.price.toFixed(2)}
             </p>
           </div>
@@ -81,47 +73,34 @@ const ProductDetailPage = () => {
           <Separator />
           
           <div>
-            <h2 className="text-lg font-medium mb-2">Description</h2>
+            <h2 className="text-lg font-medium mb-2">Descrição</h2>
             <p className="text-gray-700">{product.description}</p>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <h3 className="text-sm font-medium text-gray-500">Category</h3>
+              <h3 className="text-sm font-medium text-gray-500">Categoria</h3>
               <p>{product.category}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-500">Stock</h3>
+              <h3 className="text-sm font-medium text-gray-500">Estoque</h3>
               <p className={product.stock > 0 ? 'text-green-600' : 'text-red-600'}>
-                {product.stock > 0 ? `${product.stock} available` : 'Out of stock'}
+                {product.stock > 0 ? `${product.stock} disponíveis` : 'Sem estoque'}
               </p>
             </div>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Button 
-              onClick={handleAddToCart} 
-              className="flex-1 bg-teal-600 hover:bg-teal-700"
-              disabled={product.stock <= 0}
-            >
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              Add to Cart
-            </Button>
-            <Button 
-              onClick={handleBuyNow} 
-              variant="outline"
-              className="flex-1 border-teal-600 text-teal-600 hover:bg-teal-50"
-              disabled={product.stock <= 0}
-            >
-              {product.paymentLink ? (
-                <>
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Pay Now
-                </>
-              ) : (
-                'Buy Now'
-              )}
-            </Button>
+            {product.paymentLink && (
+              <Button 
+                onClick={handleBuyNow} 
+                className="flex-1 bg-gold-500 hover:bg-gold-400 text-black"
+                disabled={product.stock <= 0}
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Comprar Agora
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -2,22 +2,14 @@
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Product } from '@/types/product';
-import { useStore } from '@/context/StoreContext';
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addToCart } = useStore();
-
-  const handleAddToCart = () => {
-    addToCart(product, 1);
-  };
-
   return (
     <Card className="h-full flex flex-col overflow-hidden transition-shadow hover:shadow-lg border-gold-500/30 bg-black">
       <div className="relative pt-[100%]">
@@ -42,13 +34,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
         <p className="text-gray-300 text-sm line-clamp-3">{product.description}</p>
       </CardContent>
-      <CardFooter className="pt-0 pb-4 flex justify-between gap-2">
-        <Button asChild variant="outline" className="w-1/2 border-gold-500/50 text-gold-400 hover:bg-gold-500 hover:text-black">
+      <CardFooter className="pt-0 pb-4">
+        <Button asChild variant="outline" className="w-full border-gold-500/50 text-gold-400 hover:bg-gold-500 hover:text-black">
           <Link to={`/products/${product.id}`}>Detalhes</Link>
-        </Button>
-        <Button onClick={handleAddToCart} className="w-1/2 bg-gold-500 hover:bg-gold-400 text-black">
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          Adicionar
         </Button>
       </CardFooter>
     </Card>
