@@ -1,7 +1,5 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
 import { useStore } from '@/context/StoreContext';
 import ProductCard from '@/components/product/ProductCard';
 import { categories } from '@/types/product';
@@ -30,14 +28,6 @@ const HomePage = () => {
           <p className="text-xl text-gray-300 mb-8 max-w-2xl">
             Sua loja online para produtos incríveis com os melhores preços e entrega rápida.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button asChild size="lg" className="bg-gold-500 text-black hover:bg-gold-400">
-              <Link to="/products">Ver Produtos</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="text-gold-400 border-gold-500 hover:bg-gold-500 hover:text-black">
-              <Link to="/admin">Administrar Loja</Link>
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -45,9 +35,9 @@ const HomePage = () => {
       <section>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl md:text-3xl font-bold text-gold-400">Produtos em Destaque</h2>
-          <Link to="/products" className="text-gold-500 hover:text-gold-300 font-medium">
+          <a href="/products" className="text-gold-500 hover:text-gold-300 font-medium">
             Ver Todos →
-          </Link>
+          </a>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {featuredProducts.length > 0 ? (
@@ -69,12 +59,12 @@ const HomePage = () => {
             <h2 className="text-2xl md:text-3xl font-bold text-gold-400">
               {randomCategory}
             </h2>
-            <Link 
-              to={`/products?category=${randomCategory}`} 
+            <a 
+              href={`/products?category=${randomCategory}`}
               className="text-gold-500 hover:text-gold-300 font-medium"
             >
               Ver Categoria →
-            </Link>
+            </a>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {categoryProducts.map((product) => (
@@ -90,9 +80,6 @@ const HomePage = () => {
         <p className="text-lg mb-6 text-gray-300">
           Ganhe 10% de desconto na sua primeira compra!
         </p>
-        <Button asChild size="lg" className="bg-gold-500 text-black hover:bg-gold-400">
-          <Link to="/products">Comprar Agora</Link>
-        </Button>
       </section>
     </div>
   );
