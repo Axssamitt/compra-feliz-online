@@ -6,9 +6,9 @@ export interface Product {
   price: number;
   imageUrl: string;
   category: string;
-  stock: number;
   featured: boolean;
   paymentLink?: string;
+  stock?: number; // Make stock optional
 }
 
 export type ProductFormData = Omit<Product, 'id'>;

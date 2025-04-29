@@ -36,6 +36,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     const newProduct = {
       ...product,
       id: Date.now().toString(),
+      stock: 0, // Default value for backward compatibility
     };
     setProducts((prev) => [...prev, newProduct]);
     toast.success("Product added successfully!");
@@ -43,7 +44,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   const editProduct = (id: string, product: ProductFormData) => {
     setProducts((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...product } : item))
+      prev.map((item) => (item.id === id ? { ...item, ...product, stock: item.stock || 0 } : item))
     );
     toast.success("Product updated successfully!");
   };

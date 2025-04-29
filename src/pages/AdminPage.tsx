@@ -77,7 +77,6 @@ const AdminPage = () => {
                         <th className="px-4 py-3">Name</th>
                         <th className="px-4 py-3 hidden md:table-cell">Category</th>
                         <th className="px-4 py-3 hidden sm:table-cell">Price</th>
-                        <th className="px-4 py-3 hidden lg:table-cell">Stock</th>
                         <th className="px-4 py-3 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -101,7 +100,6 @@ const AdminPage = () => {
                           </td>
                           <td className="px-4 py-3 hidden md:table-cell">{product.category}</td>
                           <td className="px-4 py-3 hidden sm:table-cell">R${product.price.toFixed(2)}</td>
-                          <td className="px-4 py-3 hidden lg:table-cell">{product.stock}</td>
                           <td className="px-4 py-3 text-right">
                             <div className="flex justify-end gap-2">
                               <Button

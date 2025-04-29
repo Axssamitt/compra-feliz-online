@@ -11,14 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { ProductFormData } from '@/types/product';
 import { categories } from '@/types/product';
+import ImageUploader from './ImageUploader';
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Name must be at least 3 characters" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   price: z.coerce.number().positive({ message: "Price must be positive" }),
-  imageUrl: z.string().url({ message: "Must be a valid URL" }),
+  imageUrl: z.string().min(1, { message: "Image is required" }),
   category: z.string(),
-  stock: z.coerce.number().int().nonnegative({ message: "Stock must be 0 or higher" }),
   featured: z.boolean().default(false),
   paymentLink: z.string().url({ message: "Must be a valid URL" }).optional(),
 });
@@ -36,7 +36,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     price: 0,
     imageUrl: '',
     category: categories[0],
-    stock: 0,
     featured: false,
     paymentLink: '',
   },
@@ -47,6 +46,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
     resolver: zodResolver(formSchema),
     defaultValues: initialData,
   });
+
+  const handleImageSelected = (imageUrl: string) => {
+    form.setValue('imageUrl', imageUrl);
+  };
 
   return (
     <Form {...form}>
@@ -83,44 +86,24 @@ const ProductForm: React.FC<ProductFormProps> = ({
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Price (R$)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="stock"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Stock Quantity</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="price"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Price (R$)</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -155,11 +138,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
           name="imageUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image URL</FormLabel>
+              <FormLabel>Product Image</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="https://example.com/image.jpg"
-                  {...field}
+                <ImageUploader 
+                  onImageSelected={handleImageSelected} 
+                  initialImageUrl={field.value}
                 />
               </FormControl>
               <FormMessage />
@@ -172,7 +155,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           name="paymentLink"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Payment Link (Optional)</FormLabel>
+              <FormLabel>Payment Link</FormLabel>
               <FormControl>
                 <Input
                   placeholder="https://payment.com/yourproduct"
