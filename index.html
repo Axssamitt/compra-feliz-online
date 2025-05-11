@@ -1,494 +1,118 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Vendas - Painel Administrativo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        gold: {
-                            500: '#D4AF37',
-                            600: '#C9A227',
-                            700: '#BE9717',
-                        },
-                        dark: {
-                            900: '#121212',
-                            800: '#1E1E1E',
-                            700: '#2A2A2A',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
-    <!-- SQL.js (SQLite compiled to JavaScript) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
-    <style>
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2);
-        }
-        .login-container {
-            background: linear-gradient(135deg, #1E1E1E 0%, #121212 100%);
-            border: 1px solid #D4AF37;
-        }
-        .admin-nav {
-            background: linear-gradient(90deg, #121212 0%, #1E1E1E 100%);
-            border-right: 1px solid #D4AF37;
-        }
-        .fade-in {
-            animation: fadeIn 0.3s ease-in;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .password-strength {
-            height: 4px;
-            margin-top: 4px;
-            transition: all 0.3s ease;
-        }
-        .strength-0 { width: 20%; background-color: #ef4444; }
-        .strength-1 { width: 40%; background-color: #f59e0b; }
-        .strength-2 { width: 60%; background-color: #f59e0b; }
-        .strength-3 { width: 80%; background-color: #10b981; }
-        .strength-4 { width: 100%; background-color: #10b981; }
-        .gold-border {
-            border-color: #D4AF37;
-        }
-        .gold-text {
-            color: #D4AF37;
-        }
-        .gold-bg {
-            background-color: #D4AF37;
-        }
-        .gold-bg:hover {
-            background-color: #C9A227;
-        }
-        .dark-bg {
-            background-color: #121212;
-        }
-        .dark-text {
-            color: #1E1E1E;
-        }
-        .table-header {
-            background-color: #1E1E1E;
-            color: #D4AF37;
-        }
-        .table-row:hover {
-            background-color: #2A2A2A;
-        }
-    </style>
+    <!-- Seu head permanece igual -->
+    <!-- Inclui Tailwind CSS, SQL.js, etc. -->
 </head>
 <body class="bg-dark-800 text-white">
-    <!-- Navigation -->
-    <nav class="bg-dark-900 text-gold-500 shadow-lg border-b border-gold-500">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <a href="#" class="text-2xl font-bold flex items-center">
-                <i class="fas fa-crown mr-2"></i>
-                Super Vendas
-            </a>
-            <div class="flex items-center space-x-4">
-                <a href="#" id="shop-link" class="hover:text-gold-600">Loja</a>
-                <a href="#" id="admin-link" class="hover:text-gold-600 hidden">Admin</a>
-                <a href="#" id="login-link" class="hover:text-gold-600">Login</a>
-            </div>
-        </div>
-    </nav>
+    <!-- Navegação e conteúdo principal -->
+    <!-- ... (mantém todo o HTML existente) ... -->
 
-    <!-- Main Content -->
-    <div class="container mx-auto px-4 py-8">
-        <!-- Shop Page (Default) -->
-        <div id="shop-page">
-            <h1 class="text-3xl font-bold mb-8 text-center gold-text">Nossos Produtos</h1>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Product cards will be loaded here dynamically -->
-            </div>
-        </div>
+    <!-- Botão para atualizar o banco -->
+    <button onclick="refreshDatabaseFromDrive()" 
+            class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+        Atualizar Banco (Google Drive)
+    </button>
 
-        <!-- Login Page -->
-        <div id="login-page" class="hidden max-w-md mx-auto mt-16 p-8 rounded-xl shadow-xl login-container">
-            <h2 class="text-2xl font-bold mb-6 text-center gold-text">Área do Administrador</h2>
-            <form id="login-form">
-                <div class="mb-4">
-                    <label for="username" class="block gold-text mb-2">Usuário</label>
-                    <input type="text" id="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-700 border-gold-500 text-white" required>
-                </div>
-                <div class="mb-6">
-                    <label for="password" class="block gold-text mb-2">Senha</label>
-                    <input type="password" id="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-700 border-gold-500 text-white" required>
-                </div>
-                <button type="submit" class="w-full gold-bg hover:bg-gold-600 text-dark-900 py-2 px-4 rounded-lg font-medium transition duration-300">
-                    Entrar
-                </button>
-            </form>
-            <div id="login-error" class="mt-4 text-red-500 text-center hidden">
-                Usuário ou senha incorretos!
-            </div>
-        </div>
+    <!-- Novo botão para exportar o banco -->
+    <button onclick="exportDatabase()" 
+            class="mt-4 ml-2 px-4 py-2 gold-bg hover:bg-gold-600 text-dark-900 rounded-lg">
+        Exportar Banco Atualizado
+    </button>
 
-        <!-- Admin Page -->
-        <div id="admin-page" class="hidden">
-            <div class="flex">
-                <!-- Admin Sidebar -->
-                <div class="w-64 min-h-screen admin-nav text-gold-500 p-4">
-                    <h2 class="text-xl font-bold mb-6 flex items-center">
-                        <i class="fas fa-user-shield mr-2"></i> Painel Admin
-                    </h2>
-                    <ul class="space-y-2">
-                        <li>
-                            <a href="#" id="admin-products" class="block py-2 px-4 rounded hover:bg-dark-700 bg-dark-700 border border-gold-500">
-                                <i class="fas fa-box-open mr-2"></i> Produtos
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" id="admin-add-product" class="block py-2 px-4 rounded hover:bg-dark-700 border border-gold-500">
-                                <i class="fas fa-plus-circle mr-2"></i> Adicionar Produto
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" id="admin-change-password" class="block py-2 px-4 rounded hover:bg-dark-700 border border-gold-500">
-                                <i class="fas fa-key mr-2"></i> Alterar Senha
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" id="admin-logout" class="block py-2 px-4 rounded hover:bg-dark-700 border border-gold-500">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Sair
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Admin Content -->
-                <div class="flex-1 p-8 bg-dark-800">
-                    <!-- Products List -->
-                    <div id="admin-products-content">
-                        <div class="flex justify-between items-center mb-8">
-                            <h2 class="text-2xl font-bold gold-text">Gerenciar Produtos</h2>
-                        </div>
-                        
-                        <div class="rounded-lg shadow overflow-hidden border border-gold-500">
-                            <table class="min-w-full divide-y divide-gold-500">
-                                <thead class="table-header">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Imagem</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Nome</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Preço</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Link</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-products-list" class="bg-dark-700 divide-y divide-gold-500">
-                                    <!-- Products will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Add Product Form -->
-                    <div id="admin-add-product-content" class="hidden">
-                        <div class="flex justify-between items-center mb-8">
-                            <h2 class="text-2xl font-bold gold-text" id="add-edit-title">Adicionar Novo Produto</h2>
-                        </div>
-                        
-                        <form id="add-product-form" class="bg-dark-700 p-6 rounded-lg shadow border border-gold-500">
-                            <input type="hidden" id="product-id">
-                            <div class="mb-4">
-                                <label for="product-name" class="block gold-text mb-2">Nome do Produto</label>
-                                <input type="text" id="product-name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" required>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="product-price" class="block gold-text mb-2">Preço</label>
-                                <input type="number" step="0.01" id="product-price" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" required>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="product-description" class="block gold-text mb-2">Descrição</label>
-                                <textarea id="product-description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" required></textarea>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="product-image" class="block gold-text mb-2">URL da Imagem</label>
-                                <input type="url" id="product-image" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" required>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="product-link" class="block gold-text mb-2">Link de Compra</label>
-                                <input type="url" id="product-link" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" required>
-                            </div>
-                            
-                            <div class="flex justify-end space-x-4">
-                                <button type="button" id="cancel-add-product" class="px-4 py-2 border border-gold-500 rounded-lg text-gold-500 hover:bg-dark-600">
-                                    Cancelar
-                                </button>
-                                <button type="submit" class="px-4 py-2 gold-bg text-dark-900 rounded-lg hover:bg-gold-600">
-                                    Salvar Produto
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Change Password Form -->
-                    <div id="admin-change-password-content" class="hidden max-w-lg mx-auto">
-                        <div class="flex justify-between items-center mb-8">
-                            <h2 class="text-2xl font-bold gold-text">Alterar Senha</h2>
-                        </div>
-                        
-                        <form id="change-password-form" class="bg-dark-700 p-6 rounded-lg shadow border border-gold-500">
-                            <div class="mb-4">
-                                <label for="current-password" class="block gold-text mb-2">Senha Atual</label>
-                                <div class="relative">
-                                    <input type="password" id="current-password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" required>
-                                    <button type="button" class="absolute right-3 top-3 text-gold-500 hover:text-gold-600 toggle-password" data-target="current-password">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="new-password" class="block gold-text mb-2">Nova Senha</label>
-                                <div class="relative">
-                                    <input type="password" id="new-password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" required>
-                                    <button type="button" class="absolute right-3 top-3 text-gold-500 hover:text-gold-600 toggle-password" data-target="new-password">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <div class="password-strength strength-0" id="password-strength"></div>
-                                <div class="text-xs text-gold-500 mt-1" id="password-hints">
-                                    A senha deve conter pelo menos 8 caracteres, incluindo maiúsculas, minúsculas, números e caracteres especiais.
-                                </div>
-                            </div>
-                            
-                            <div class="mb-6">
-                                <label for="confirm-password" class="block gold-text mb-2">Confirmar Nova Senha</label>
-                                <div class="relative">
-                                    <input type="password" id="confirm-password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" required>
-                                    <button type="button" class="absolute right-3 top-3 text-gold-500 hover:text-gold-600 toggle-password" data-target="confirm-password">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <div class="text-xs text-red-500 mt-1 hidden" id="password-mismatch">
-                                    As senhas não coincidem.
-                                </div>
-                            </div>
-                            
-                            <div class="flex justify-end space-x-4">
-                                <button type="button" id="cancel-change-password" class="px-4 py-2 border border-gold-500 rounded-lg text-gold-500 hover:bg-dark-600">
-                                    Cancelar
-                                </button>
-                                <button type="submit" class="px-4 py-2 gold-bg text-dark-900 rounded-lg hover:bg-gold-600">
-                                    Alterar Senha
-                                </button>
-                            </div>
-                        </form>
-                        <div id="password-change-success" class="mt-4 p-4 bg-green-900 text-green-300 rounded-lg border border-green-500 hidden">
-                            <i class="fas fa-check-circle mr-2"></i> Senha alterada com sucesso!
-                        </div>
-                        <div id="password-change-error" class="mt-4 p-4 bg-red-900 text-red-300 rounded-lg border border-red-500 hidden">
-                            <i class="fas fa-exclamation-circle mr-2"></i> <span id="error-message"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SQL File Content (for reference) -->
+    <!-- Script principal -->
     <script>
-        // Database setup
+        // Variável global para armazenar o ID do arquivo no Google Drive
+        const GOOGLE_DRIVE_DB_URL = 'https://drive.google.com/uc?id=SEU_ID_DO_ARQUIVO ';
+
         let db;
         let isAuthenticated = false;
-        let currentUser = null;
 
-        // Initialize SQL.js database
+        // Função para inicializar o banco de dados
         async function initDatabase() {
             try {
-                // Load SQL.js
                 const SQL = await initSqlJs({
-                    locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
+                    locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/ ${file}`
                 });
 
-                // Create a new database
-                db = new SQL.Database();
-                
-                // Create tables if they don't exist
-                db.run(`
-                    CREATE TABLE IF NOT EXISTS users (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        username TEXT UNIQUE NOT NULL,
-                        password_hash TEXT NOT NULL,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    );
-                `);
-                
-                db.run(`
-                    CREATE TABLE IF NOT EXISTS products (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        name TEXT NOT NULL,
-                        price REAL NOT NULL,
-                        description TEXT NOT NULL,
-                        image_url TEXT NOT NULL,
-                        purchase_link TEXT NOT NULL,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    );
-                `);
-                
-                // Check if we have any users (if not, create default admin)
-                const userCheck = db.exec("SELECT COUNT(*) as count FROM users");
-                if (userCheck[0].values[0][0] === 0) {
-                    // Default admin user (username: admin, password: 123456)
-                    const defaultPasswordHash = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"; // SHA-256 of "123456"
-                    db.run("INSERT INTO users (username, password_hash) VALUES (?, ?)", ["admin", defaultPasswordHash]);
-                    
-                    // Insert some sample products
-                    db.run(`
-                        INSERT INTO products (name, price, description, image_url, purchase_link)
-                        VALUES 
-                            ('Smartphone Premium', 2499.99, 'O mais recente smartphone com câmera de 108MP e processador ultrarrápido.', 'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c21hcnRwaG9uZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60', 'https://exemplo.com/comprar/smartphone'),
-                            ('Notebook Pro', 5299.90, 'Notebook com tela 4K, 16GB RAM e SSD de 1TB para trabalho e jogos.', 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGxhcHRvcHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60', 'https://exemplo.com/comprar/notebook'),
-                            ('Fone Bluetooth', 399.99, 'Fones de ouvido sem fio com cancelamento de ruído e 30h de bateria.', 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8aGVhZHBob25lc3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60', 'https://exemplo.com/comprar/fone')
-                    `);
+                let dbArrayBuffer;
+
+                // Tenta carregar do localStorage primeiro
+                const savedDb = localStorage.getItem('localDB');
+                if (savedDb) {
+                    dbArrayBuffer = new Uint8Array(JSON.parse(savedDb));
+                } else {
+                    // Se não tiver local, baixa do Google Drive
+                    const response = await fetch(GOOGLE_DRIVE_DB_URL);
+                    dbArrayBuffer = new Uint8Array(await response.arrayBuffer());
                 }
-                
-                console.log("Database initialized successfully");
+
+                db = new SQL.Database(dbArrayBuffer);
+
+                console.log("Banco carregado com sucesso!");
             } catch (err) {
-                console.error("Error initializing database:", err);
-                alert("Erro ao inicializar o banco de dados. Por favor, recarregue a página.");
+                alert("Erro ao carregar o banco de dados.");
+                console.error(err);
             }
         }
 
-        // DOM Elements
-        const shopPage = document.getElementById('shop-page');
-        const loginPage = document.getElementById('login-page');
-        const adminPage = document.getElementById('admin-page');
-        const adminLink = document.getElementById('admin-link');
-        const loginLink = document.getElementById('login-link');
-        const shopLink = document.getElementById('shop-link');
-        const loginForm = document.getElementById('login-form');
-        const loginError = document.getElementById('login-error');
-        const adminProductsContent = document.getElementById('admin-products-content');
-        const adminAddProductContent = document.getElementById('admin-add-product-content');
-        const adminChangePasswordContent = document.getElementById('admin-change-password-content');
-        const adminProductsLink = document.getElementById('admin-products');
-        const adminAddProductLink = document.getElementById('admin-add-product');
-        const adminChangePasswordLink = document.getElementById('admin-change-password');
-        const adminLogoutLink = document.getElementById('admin-logout');
-        const cancelAddProductBtn = document.getElementById('cancel-add-product');
-        const cancelChangePasswordBtn = document.getElementById('cancel-change-password');
-        const addProductForm = document.getElementById('add-product-form');
-        const changePasswordForm = document.getElementById('change-password-form');
-        const addEditTitle = document.getElementById('add-edit-title');
-        const passwordStrength = document.getElementById('password-strength');
-        const passwordMismatch = document.getElementById('password-mismatch');
-        const passwordChangeSuccess = document.getElementById('password-change-success');
-        const passwordChangeError = document.getElementById('password-change-error');
-        const errorMessage = document.getElementById('error-message');
+        // Função para exportar o banco como arquivo
+        window.exportDatabase = function () {
+            const data = db.export(); // Uint8Array
+            const blob = new Blob([data], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'banco.sqlite';
+            a.click();
+            URL.revokeObjectURL(url);
+        };
 
-        // Initialize the app
-        async function init() {
-            await initDatabase();
-            setupEventListeners();
-            renderProducts();
-        }
-
-        // Render products on shop page
-        function renderProducts() {
-            const productsContainer = shopPage.querySelector('.grid');
-            productsContainer.innerHTML = '';
-            
-            const products = getProducts();
-            
-            products.forEach(product => {
-                const productCard = document.createElement('div');
-                productCard.className = 'product-card bg-dark-700 rounded-xl shadow-md overflow-hidden transition duration-300 border border-gold-500';
-                productCard.innerHTML = `
-                    <div class="h-48 overflow-hidden">
-                        <img src="${product.image_url}" alt="${product.name}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold gold-text mb-2">${product.name}</h3>
-                        <p class="text-gray-300 mb-4">${product.description}</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-2xl font-bold gold-text">R$ ${product.price.toFixed(2)}</span>
-                            <a href="${product.purchase_link}" target="_blank" class="px-4 py-2 gold-bg text-dark-900 rounded-lg hover:bg-gold-600 transition duration-300">
-                                Comprar Agora
-                            </a>
-                        </div>
-                    </div>
-                `;
-                productsContainer.appendChild(productCard);
-            });
-        }
-
-        // Render products in admin panel
-        function renderAdminProducts() {
-            const productsList = document.getElementById('admin-products-list');
-            productsList.innerHTML = '';
-            
-            const products = getProducts();
-            
-            products.forEach(product => {
-                const row = document.createElement('tr');
-                row.className = 'table-row';
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex-shrink-0 h-10 w-10">
-                            <img class="h-10 w-10 rounded-full" src="${product.image_url}" alt="${product.name}">
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-white">${product.name}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm gold-text">R$ ${product.price.toFixed(2)}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-300 truncate max-w-xs">${product.purchase_link}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                        <button onclick="editProduct(${product.id})" class="gold-text hover:text-gold-600 mr-3">Editar</button>
-                        <button onclick="deleteProduct(${product.id})" class="text-red-400 hover:text-red-600">Excluir</button>
-                    </td>
-                `;
-                productsList.appendChild(row);
-            });
-        }
-
-        // Database functions
-        function getProducts() {
-            const stmt = db.prepare("SELECT * FROM products ORDER BY id DESC");
-            const products = [];
-            
-            while (stmt.step()) {
-                products.push(stmt.getAsObject());
+        // Função para atualizar o banco a partir do Google Drive
+        window.refreshDatabaseFromDrive = async function () {
+            if (!confirm('Tem certeza que deseja recarregar o banco do Google Drive? Todos os dados locais serão substituídos.')) {
+                return;
             }
-            
-            stmt.free();
-            return products;
+
+            try {
+                const SQL = await initSqlJs({
+                    locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/ ${file}`
+                });
+
+                const response = await fetch(GOOGLE_DRIVE_DB_URL);
+                const dbArrayBuffer = new Uint8Array(await response.arrayBuffer());
+
+                db = new SQL.Database(dbArrayBuffer);
+
+                // Salva no localStorage também
+                localStorage.setItem('localDB', JSON.stringify(Array.from(dbArrayBuffer)));
+
+                alert("Banco atualizado com sucesso!");
+
+                // Atualiza as listas
+                renderProducts();
+                renderAdminProducts();
+
+            } catch (err) {
+                alert("Erro ao atualizar o banco do Google Drive.");
+                console.error(err);
+            }
+        };
+
+        // Modificação na função saveDatabase()
+        function saveDatabase() {
+            if (db) {
+                const data = db.export();
+                localStorage.setItem('localDB', JSON.stringify(Array.from(data)));
+            }
         }
 
-        function getProductById(id) {
-            const stmt = db.prepare("SELECT * FROM products WHERE id = ?");
-            stmt.bind([id]);
-            const result = stmt.step() ? stmt.getAsObject() : null;
-            stmt.free();
-            return result;
-        }
-
+        // Atualize suas funções CRUD para chamar saveDatabase()
         function addProduct(product) {
             const stmt = db.prepare(`
                 INSERT INTO products (name, price, description, image_url, purchase_link)
                 VALUES (?, ?, ?, ?, ?)
             `);
-            
             stmt.bind([
                 product.name,
                 product.price,
@@ -496,10 +120,9 @@
                 product.image_url,
                 product.purchase_link
             ]);
-            
             stmt.step();
             stmt.free();
-            
+            saveDatabase();
             return db.exec("SELECT last_insert_rowid()")[0].values[0][0];
         }
 
@@ -509,7 +132,6 @@
                 SET name = ?, price = ?, description = ?, image_url = ?, purchase_link = ?
                 WHERE id = ?
             `);
-            
             stmt.bind([
                 product.name,
                 product.price,
@@ -518,9 +140,9 @@
                 product.purchase_link,
                 product.id
             ]);
-            
             stmt.step();
             stmt.free();
+            saveDatabase();
         }
 
         function deleteProductById(id) {
@@ -528,368 +150,19 @@
             stmt.bind([id]);
             stmt.step();
             stmt.free();
+            saveDatabase();
         }
 
-        function getUserByUsername(username) {
-            const stmt = db.prepare("SELECT * FROM users WHERE username = ?");
-            stmt.bind([username]);
-            const result = stmt.step() ? stmt.getAsObject() : null;
-            stmt.free();
-            return result;
-        }
-
-        function updateUserPassword(userId, newPasswordHash) {
-            const stmt = db.prepare("UPDATE users SET password_hash = ? WHERE id = ?");
-            stmt.bind([newPasswordHash, userId]);
-            stmt.step();
-            stmt.free();
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Navigation
-            loginLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                showLoginPage();
-            });
-            
-            shopLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                showShopPage();
-            });
-            
-            adminLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                showAdminPage();
-            });
-
-            // Login form
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-                
-                // Hash the password with SHA-256
-                const hashedPassword = sha256(password);
-                
-                const user = getUserByUsername(username);
-                
-                if (user && user.password_hash === hashedPassword) {
-                    isAuthenticated = true;
-                    currentUser = user;
-                    adminLink.classList.remove('hidden');
-                    showAdminPage();
-                    loginError.classList.add('hidden');
-                } else {
-                    loginError.classList.remove('hidden');
-                }
-            });
-
-            // Admin navigation
-            adminProductsLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                showAdminProducts();
-            });
-            
-            adminAddProductLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                showAddProductForm();
-            });
-            
-            adminChangePasswordLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                showChangePasswordForm();
-            });
-            
-            adminLogoutLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                logout();
-            });
-            
-            cancelAddProductBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                showAdminProducts();
-            });
-
-            cancelChangePasswordBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                showAdminProducts();
-            });
-
-            // Add product form
-            addProductForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const productId = document.getElementById('product-id').value;
-                
-                if (productId) {
-                    updateProductInDB(productId);
-                } else {
-                    addNewProductToDB();
-                }
-            });
-
-            // Change password form
-            changePasswordForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                changePasswordInDB();
-            });
-
-            // Password strength indicator
-            document.getElementById('new-password').addEventListener('input', (e) => {
-                checkPasswordStrength(e.target.value);
-            });
-
-            // Confirm password match
-            document.getElementById('confirm-password').addEventListener('input', (e) => {
-                const newPassword = document.getElementById('new-password').value;
-                const confirmPassword = e.target.value;
-                
-                if (newPassword && confirmPassword && newPassword !== confirmPassword) {
-                    passwordMismatch.classList.remove('hidden');
-                } else {
-                    passwordMismatch.classList.add('hidden');
-                }
-            });
-
-            // Toggle password visibility
-            document.querySelectorAll('.toggle-password').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const targetId = e.target.closest('button').getAttribute('data-target');
-                    const input = document.getElementById(targetId);
-                    const icon = e.target.closest('button').querySelector('i');
-                    
-                    if (input.type === 'password') {
-                        input.type = 'text';
-                        icon.classList.replace('fa-eye', 'fa-eye-slash');
-                    } else {
-                        input.type = 'password';
-                        icon.classList.replace('fa-eye-slash', 'fa-eye');
-                    }
-                });
-            });
-        }
-
-        // Page navigation functions
-        function showShopPage() {
-            shopPage.classList.remove('hidden');
-            loginPage.classList.add('hidden');
-            adminPage.classList.add('hidden');
+        // Inicialização do app
+        async function init() {
+            await initDatabase();
+            setupEventListeners();
             renderProducts();
-        }
-
-        function showLoginPage() {
-            shopPage.classList.add('hidden');
-            loginPage.classList.remove('hidden');
-            adminPage.classList.add('hidden');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
-
-        function showAdminPage() {
-            if (!isAuthenticated) {
-                showLoginPage();
-                return;
-            }
-            
-            shopPage.classList.add('hidden');
-            loginPage.classList.add('hidden');
-            adminPage.classList.remove('hidden');
-            showAdminProducts();
-        }
-
-        function showAdminProducts() {
-            adminProductsContent.classList.remove('hidden');
-            adminAddProductContent.classList.add('hidden');
-            adminChangePasswordContent.classList.add('hidden');
-            adminProductsLink.classList.add('bg-dark-700');
-            adminAddProductLink.classList.remove('bg-dark-700');
-            adminChangePasswordLink.classList.remove('bg-dark-700');
             renderAdminProducts();
         }
 
-        function showAddProductForm() {
-            adminProductsContent.classList.add('hidden');
-            adminAddProductContent.classList.remove('hidden');
-            adminChangePasswordContent.classList.add('hidden');
-            adminProductsLink.classList.remove('bg-dark-700');
-            adminAddProductLink.classList.add('bg-dark-700');
-            adminChangePasswordLink.classList.remove('bg-dark-700');
-            
-            // Reset form
-            addProductForm.reset();
-            document.getElementById('product-id').value = '';
-            addEditTitle.textContent = 'Adicionar Novo Produto';
-        }
-
-        function showChangePasswordForm() {
-            adminProductsContent.classList.add('hidden');
-            adminAddProductContent.classList.add('hidden');
-            adminChangePasswordContent.classList.remove('hidden');
-            adminProductsLink.classList.remove('bg-dark-700');
-            adminAddProductLink.classList.remove('bg-dark-700');
-            adminChangePasswordLink.classList.add('bg-dark-700');
-            
-            // Reset form
-            changePasswordForm.reset();
-            passwordStrength.className = 'password-strength strength-0';
-            passwordMismatch.classList.add('hidden');
-            passwordChangeSuccess.classList.add('hidden');
-            passwordChangeError.classList.add('hidden');
-        }
-
-        function showEditProductForm(product) {
-            adminProductsContent.classList.add('hidden');
-            adminAddProductContent.classList.remove('hidden');
-            adminChangePasswordContent.classList.add('hidden');
-            adminProductsLink.classList.remove('bg-dark-700');
-            adminAddProductLink.classList.add('bg-dark-700');
-            adminChangePasswordLink.classList.remove('bg-dark-700');
-            
-            // Fill form with product data
-            document.getElementById('product-id').value = product.id;
-            document.getElementById('product-name').value = product.name;
-            document.getElementById('product-price').value = product.price;
-            document.getElementById('product-description').value = product.description;
-            document.getElementById('product-image').value = product.image_url;
-            document.getElementById('product-link').value = product.purchase_link;
-            
-            addEditTitle.textContent = 'Editar Produto';
-        }
-
-        function logout() {
-            isAuthenticated = false;
-            currentUser = null;
-            adminLink.classList.add('hidden');
-            showShopPage();
-        }
-
-        // Product CRUD operations
-        function addNewProductToDB() {
-            const newProduct = {
-                name: document.getElementById('product-name').value,
-                price: parseFloat(document.getElementById('product-price').value),
-                description: document.getElementById('product-description').value,
-                image_url: document.getElementById('product-image').value,
-                purchase_link: document.getElementById('product-link').value
-            };
-            
-            addProduct(newProduct);
-            showAdminProducts();
-            
-            // Show success message
-            alert('Produto adicionado com sucesso!');
-        }
-
-        function updateProductInDB(id) {
-            const updatedProduct = {
-                id: parseInt(id),
-                name: document.getElementById('product-name').value,
-                price: parseFloat(document.getElementById('product-price').value),
-                description: document.getElementById('product-description').value,
-                image_url: document.getElementById('product-image').value,
-                purchase_link: document.getElementById('product-link').value
-            };
-            
-            updateProduct(updatedProduct);
-            showAdminProducts();
-            alert('Produto atualizado com sucesso!');
-        }
-
-        // Password functions
-        function checkPasswordStrength(password) {
-            let strength = 0;
-            
-            // Length
-            if (password.length >= 8) strength++;
-            if (password.length >= 12) strength++;
-            
-            // Contains uppercase, lowercase, numbers and special chars
-            if (/[A-Z]/.test(password)) strength++;
-            if (/[a-z]/.test(password)) strength++;
-            if (/[0-9]/.test(password)) strength++;
-            if (/[^A-Za-z0-9]/.test(password)) strength++;
-            
-            // Cap at 4 (for our strength meter)
-            strength = Math.min(strength, 4);
-            
-            // Update strength meter
-            passwordStrength.className = `password-strength strength-${strength}`;
-        }
-
-        function changePasswordInDB() {
-            const currentPassword = document.getElementById('current-password').value;
-            const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
-            
-            // Hide previous messages
-            passwordChangeSuccess.classList.add('hidden');
-            passwordChangeError.classList.add('hidden');
-            
-            // Validate inputs
-            if (!currentPassword || !newPassword || !confirmPassword) {
-                showPasswordError('Todos os campos são obrigatórios.');
-                return;
-            }
-            
-            // Check if current password is correct
-            const hashedCurrentPassword = sha256(currentPassword);
-            if (hashedCurrentPassword !== currentUser.password_hash) {
-                showPasswordError('A senha atual está incorreta.');
-                return;
-            }
-            
-            // Check if new password meets requirements
-            if (newPassword.length < 8) {
-                showPasswordError('A nova senha deve ter pelo menos 8 caracteres.');
-                return;
-            }
-            
-            // Check if passwords match
-            if (newPassword !== confirmPassword) {
-                showPasswordError('As senhas não coincidem.');
-                return;
-            }
-            
-            // Hash the new password
-            const hashedNewPassword = sha256(newPassword);
-            
-            // Update password in database
-            updateUserPassword(currentUser.id, hashedNewPassword);
-            
-            // Update current user in memory
-            currentUser.password_hash = hashedNewPassword;
-            
-            // Show success message
-            passwordChangeSuccess.classList.remove('hidden');
-            
-            // Reset form
-            changePasswordForm.reset();
-            passwordStrength.className = 'password-strength strength-0';
-        }
-
-        function showPasswordError(message) {
-            errorMessage.textContent = message;
-            passwordChangeError.classList.remove('hidden');
-        }
-
-        window.editProduct = function(id) {
-            const product = getProductById(id);
-            if (product) {
-                showEditProductForm(product);
-            }
-        };
-
-        window.deleteProduct = function(id) {
-            if (confirm('Tem certeza que deseja excluir este produto?')) {
-                deleteProductById(id);
-                renderAdminProducts();
-                renderProducts();
-                alert('Produto excluído com sucesso!');
-            }
-        };
-
-        // Initialize the app
+        // Execute a inicialização
         init();
     </script>
-<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=Axssamit/teste" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</body>
 </html>
