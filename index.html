@@ -307,6 +307,7 @@
         let db;
         let isAuthenticated = false;
         let currentUser = null;
+
         // Initialize SQL.js database
         async function initDatabase() {
             try {
@@ -314,6 +315,7 @@
                 const SQL = await initSqlJs({
                     locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
                 });
+
                 // Create a new database
                 db = new SQL.Database();
                 
@@ -362,6 +364,7 @@
                 alert("Erro ao inicializar o banco de dados. Por favor, recarregue a página.");
             }
         }
+
         // DOM Elements
         const shopPage = document.getElementById('shop-page');
         const loginPage = document.getElementById('login-page');
@@ -388,12 +391,14 @@
         const passwordChangeSuccess = document.getElementById('password-change-success');
         const passwordChangeError = document.getElementById('password-change-error');
         const errorMessage = document.getElementById('error-message');
+
         // Initialize the app
         async function init() {
             await initDatabase();
             setupEventListeners();
             renderProducts();
         }
+
         // Render products on shop page
         function renderProducts() {
             const productsContainer = shopPage.querySelector('.grid');
@@ -422,6 +427,7 @@
                 productsContainer.appendChild(productCard);
             });
         }
+
         // Render products in admin panel
         function renderAdminProducts() {
             const productsList = document.getElementById('admin-products-list');
@@ -455,6 +461,7 @@
                 productsList.appendChild(row);
             });
         }
+
         // Database functions
         function getProducts() {
             const stmt = db.prepare("SELECT * FROM products ORDER BY id DESC");
@@ -467,6 +474,7 @@
             stmt.free();
             return products;
         }
+
         function getProductById(id) {
             const stmt = db.prepare("SELECT * FROM products WHERE id = ?");
             stmt.bind([id]);
@@ -474,6 +482,7 @@
             stmt.free();
             return result;
         }
+
         function addProduct(product) {
             const stmt = db.prepare(`
                 INSERT INTO products (name, price, description, image_url, purchase_link)
@@ -493,6 +502,7 @@
             
             return db.exec("SELECT last_insert_rowid()")[0].values[0][0];
         }
+
         function updateProduct(product) {
             const stmt = db.prepare(`
                 UPDATE products 
@@ -512,12 +522,14 @@
             stmt.step();
             stmt.free();
         }
+
         function deleteProductById(id) {
             const stmt = db.prepare("DELETE FROM products WHERE id = ?");
             stmt.bind([id]);
             stmt.step();
             stmt.free();
         }
+
         function getUserByUsername(username) {
             const stmt = db.prepare("SELECT * FROM users WHERE username = ?");
             stmt.bind([username]);
@@ -525,12 +537,14 @@
             stmt.free();
             return result;
         }
+
         function updateUserPassword(userId, newPasswordHash) {
             const stmt = db.prepare("UPDATE users SET password_hash = ? WHERE id = ?");
             stmt.bind([newPasswordHash, userId]);
             stmt.step();
             stmt.free();
         }
+
         // Setup event listeners
         function setupEventListeners() {
             // Navigation
@@ -548,6 +562,7 @@
                 e.preventDefault();
                 showAdminPage();
             });
+
             // Login form
             loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -569,6 +584,7 @@
                     loginError.classList.remove('hidden');
                 }
             });
+
             // Admin navigation
             adminProductsLink.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -594,10 +610,12 @@
                 e.preventDefault();
                 showAdminProducts();
             });
+
             cancelChangePasswordBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 showAdminProducts();
             });
+
             // Add product form
             addProductForm.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -609,15 +627,18 @@
                     addNewProductToDB();
                 }
             });
+
             // Change password form
             changePasswordForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 changePasswordInDB();
             });
+
             // Password strength indicator
             document.getElementById('new-password').addEventListener('input', (e) => {
                 checkPasswordStrength(e.target.value);
             });
+
             // Confirm password match
             document.getElementById('confirm-password').addEventListener('input', (e) => {
                 const newPassword = document.getElementById('new-password').value;
@@ -629,6 +650,7 @@
                     passwordMismatch.classList.add('hidden');
                 }
             });
+
             // Toggle password visibility
             document.querySelectorAll('.toggle-password').forEach(button => {
                 button.addEventListener('click', (e) => {
@@ -646,6 +668,7 @@
                 });
             });
         }
+
         // Page navigation functions
         function showShopPage() {
             shopPage.classList.remove('hidden');
@@ -653,6 +676,7 @@
             adminPage.classList.add('hidden');
             renderProducts();
         }
+
         function showLoginPage() {
             shopPage.classList.add('hidden');
             loginPage.classList.remove('hidden');
@@ -660,6 +684,7 @@
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
         }
+
         function showAdminPage() {
             if (!isAuthenticated) {
                 showLoginPage();
@@ -671,6 +696,7 @@
             adminPage.classList.remove('hidden');
             showAdminProducts();
         }
+
         function showAdminProducts() {
             adminProductsContent.classList.remove('hidden');
             adminAddProductContent.classList.add('hidden');
@@ -680,6 +706,7 @@
             adminChangePasswordLink.classList.remove('bg-dark-700');
             renderAdminProducts();
         }
+
         function showAddProductForm() {
             adminProductsContent.classList.add('hidden');
             adminAddProductContent.classList.remove('hidden');
@@ -693,6 +720,7 @@
             document.getElementById('product-id').value = '';
             addEditTitle.textContent = 'Adicionar Novo Produto';
         }
+
         function showChangePasswordForm() {
             adminProductsContent.classList.add('hidden');
             adminAddProductContent.classList.add('hidden');
@@ -708,6 +736,7 @@
             passwordChangeSuccess.classList.add('hidden');
             passwordChangeError.classList.add('hidden');
         }
+
         function showEditProductForm(product) {
             adminProductsContent.classList.add('hidden');
             adminAddProductContent.classList.remove('hidden');
@@ -726,12 +755,14 @@
             
             addEditTitle.textContent = 'Editar Produto';
         }
+
         function logout() {
             isAuthenticated = false;
             currentUser = null;
             adminLink.classList.add('hidden');
             showShopPage();
         }
+
         // Product CRUD operations
         function addNewProductToDB() {
             const newProduct = {
@@ -748,6 +779,7 @@
             // Show success message
             alert('Produto adicionado com sucesso!');
         }
+
         function updateProductInDB(id) {
             const updatedProduct = {
                 id: parseInt(id),
@@ -762,6 +794,7 @@
             showAdminProducts();
             alert('Produto atualizado com sucesso!');
         }
+
         // Password functions
         function checkPasswordStrength(password) {
             let strength = 0;
@@ -782,6 +815,7 @@
             // Update strength meter
             passwordStrength.className = `password-strength strength-${strength}`;
         }
+
         function changePasswordInDB() {
             const currentPassword = document.getElementById('current-password').value;
             const newPassword = document.getElementById('new-password').value;
@@ -832,16 +866,19 @@
             changePasswordForm.reset();
             passwordStrength.className = 'password-strength strength-0';
         }
+
         function showPasswordError(message) {
             errorMessage.textContent = message;
             passwordChangeError.classList.remove('hidden');
         }
+
         window.editProduct = function(id) {
             const product = getProductById(id);
             if (product) {
                 showEditProductForm(product);
             }
         };
+
         window.deleteProduct = function(id) {
             if (confirm('Tem certeza que deseja excluir este produto?')) {
                 deleteProductById(id);
@@ -850,8 +887,9 @@
                 alert('Produto excluído com sucesso!');
             }
         };
+
         // Initialize the app
         init();
     </script>
-<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=Axssamit/teste" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</body>
 </html>
