@@ -20,6 +20,7 @@ import ProductForm from './pages/Admin/ProductForm';
 import ChangePassword from './pages/Admin/ChangePassword';
 import ExportPage from './pages/Admin/ExportPage';
 import NotFound from './pages/NotFound';
+import CreateAdminUser from './pages/CreateAdminUser';
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
                 <Route path="/" element={<Shop />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/logout" element={<Logout />} />
+                <Route path="/create-admin" element={<CreateAdminUser />} />
                 
                 {/* Admin routes */}
                 <Route path="/admin" element={
