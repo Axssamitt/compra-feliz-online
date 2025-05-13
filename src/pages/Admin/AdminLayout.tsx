@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Box, CirclePlus, Key, LogOut } from 'lucide-react';
+import { Box, CirclePlus, Key, LogOut, FileCode } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,8 +11,8 @@ const AdminLayout: React.FC = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast({
       title: "Logout realizado",
       description: "Você foi desconectado com sucesso."
@@ -48,6 +48,16 @@ const AdminLayout: React.FC = () => {
               }`}
             >
               <CirclePlus className="inline-block mr-2" /> Adicionar Produto
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/admin/export"
+              className={`block py-2 px-4 rounded hover:bg-dark-700 border border-gold-500 ${
+                location.pathname === '/admin/export' ? 'bg-dark-700' : ''
+              }`}
+            >
+              <FileCode className="inline-block mr-2" /> Exportar HTML
             </Link>
           </li>
           <li>

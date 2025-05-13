@@ -19,6 +19,7 @@ export interface Database {
           image_url: string | null
           category_id: number | null
           created_at: string | null
+          purchase_link: string | null
         }
         Insert: {
           id?: number
@@ -28,6 +29,7 @@ export interface Database {
           image_url?: string | null
           category_id?: number | null
           created_at?: string | null
+          purchase_link?: string | null
         }
         Update: {
           id?: number
@@ -37,6 +39,7 @@ export interface Database {
           image_url?: string | null
           category_id?: number | null
           created_at?: string | null
+          purchase_link?: string | null
         }
       }
       categories: {
@@ -66,21 +69,16 @@ export interface Database {
   }
 }
 
-// Define user type separately since it's not in the Supabase schema
-export type User = {
-  id: number;
-  username: string;
-  password_hash: string;
-};
-
 export type Product = Database['public']['Tables']['products']['Row'] & {
-  purchase_link: string; // Add this field to maintain compatibility with existing code
+  purchase_link: string;
 };
 
 export type NewProduct = Database['public']['Tables']['products']['Insert'] & {
-  purchase_link: string; // Add this field to maintain compatibility with existing code
+  purchase_link: string;
 };
 
 export type UpdateProduct = Database['public']['Tables']['products']['Update'] & {
-  purchase_link?: string; // Add this field to maintain compatibility with existing code
+  purchase_link?: string;
 };
+
+export type Category = Database['public']['Tables']['categories']['Row'];
