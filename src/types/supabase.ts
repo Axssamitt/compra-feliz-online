@@ -69,16 +69,10 @@ export interface Database {
   }
 }
 
-export type Product = Database['public']['Tables']['products']['Row'] & {
-  purchase_link: string;
-};
+export type Product = Database['public']['Tables']['products']['Row'];
 
-export type NewProduct = Database['public']['Tables']['products']['Insert'] & {
-  purchase_link: string;
-};
+export type NewProduct = Database['public']['Tables']['products']['Insert'];
 
-export type UpdateProduct = Database['public']['Tables']['products']['Update'] & {
-  purchase_link?: string;
-};
+export type UpdateProduct = Database['public']['Tables']['products']['Update'];
 
 export type Category = Database['public']['Tables']['categories']['Row'];
