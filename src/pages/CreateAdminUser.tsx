@@ -25,7 +25,9 @@ const CreateAdminUser: React.FC = () => {
       });
 
       if (error) {
-        toast.error('Erro ao criar usuário:', error.message);
+        toast.error('Erro ao criar usuário', {
+          description: error.message
+        });
         console.error('Erro ao criar usuário:', error);
       } else {
         toast.success('Usuário criado com sucesso!', {
