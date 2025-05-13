@@ -1,5 +1,4 @@
 
-
 export type Json =
   | string
   | number
@@ -77,4 +76,3 @@ export type NewProduct = Database['public']['Tables']['products']['Insert'];
 export type UpdateProduct = Database['public']['Tables']['products']['Update'];
 
 export type Category = Database['public']['Tables']['categories']['Row'];
-
