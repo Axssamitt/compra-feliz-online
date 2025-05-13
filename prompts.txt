@@ -1,1 +1,0 @@
-crie o arqivo sql, mude as cores para preto com detalhes dourados
