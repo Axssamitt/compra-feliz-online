@@ -40,7 +40,7 @@ const ProductForm = () => {
         const { data, error } = await supabase
           .from('products')
           .select('*')
-          .eq('id', id)
+          .eq('id', parseInt(id)) // Convert string id to number
           .single();
 
         if (error) throw error;
@@ -181,7 +181,7 @@ const ProductForm = () => {
         result = await supabase
           .from('products')
           .update(productData)
-          .eq('id', id);
+          .eq('id', parseInt(id as string)); // Convert string id to number
       } else {
         // Create new product
         result = await supabase
