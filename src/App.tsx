@@ -17,8 +17,6 @@ import Login from "./pages/Login";
 import Logout from "./pages/Logout";
 import NotFound from "./pages/NotFound";
 
-import "./App.css";
-
 function App() {
   return (
     <BrowserRouter>
@@ -45,9 +43,6 @@ function App() {
             <Route path="change-password" element={<ChangePassword />} />
             <Route path="export" element={<ExportPage />} />
           </Route>
-          
-          {/* Redirect from /create-admin to login page */}
-          <Route path="/create-admin" element={<Navigate to="/login" replace />} />
           
           {/* 404 Page */}
           <Route path="*" element={<NotFound />} />

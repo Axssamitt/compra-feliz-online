@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Product } from '../types/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const Shop: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -21,13 +22,8 @@ const Shop: React.FC = () => {
           throw error;
         }
 
-        // Transform data to include purchase_link
-        const productsWithPurchaseLink = data?.map(product => ({
-          ...product,
-          purchase_link: product.image_url || '' // Using image_url as a fallback for purchase_link
-        })) || [];
-
-        setProducts(productsWithPurchaseLink);
+        console.log("Products fetched:", data);
+        setProducts(data || []);
       } catch (error) {
         console.error('Error fetching products:', error);
         toast({
@@ -46,7 +42,7 @@ const Shop: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold-500"></div>
+        <Loader2 className="h-12 w-12 animate-spin text-gold-500" />
       </div>
     );
   }
@@ -67,25 +63,37 @@ const Shop: React.FC = () => {
               className="product-card bg-dark-700 rounded-xl shadow-md overflow-hidden transition duration-300 border border-gold-500"
             >
               <div className="h-48 overflow-hidden">
-                <img 
-                  src={product.image_url} 
-                  alt={product.name} 
-                  className="w-full h-full object-cover"
-                />
+                {product.image_url ? (
+                  <img 
+                    src={product.image_url} 
+                    alt={product.name} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error(`Error loading image for ${product.name}`);
+                      (e.target as HTMLImageElement).src = '/placeholder.svg';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-dark-800 flex items-center justify-center">
+                    <span className="text-gray-400">No image</span>
+                  </div>
+                )}
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-semibold gold-text mb-2">{product.name}</h3>
                 <p className="text-gray-300 mb-4">{product.description}</p>
                 <div className="flex justify-between items-center">
                   <span className="text-2xl font-bold gold-text">R$ {product.price.toFixed(2)}</span>
-                  <a 
-                    href={product.purchase_link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 gold-bg text-dark-900 rounded-lg hover:bg-gold-600 transition duration-300"
-                  >
-                    Comprar Agora
-                  </a>
+                  {product.purchase_link && (
+                    <a 
+                      href={product.purchase_link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 gold-bg text-dark-900 rounded-lg hover:bg-gold-600 transition duration-300"
+                    >
+                      Comprar Agora
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
