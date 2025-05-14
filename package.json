@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "static": "npm install --save-dev gh-pages",
     "dev": "vite",
     "build": "vite build",
     "deploy": "gh-pages -d dist",
