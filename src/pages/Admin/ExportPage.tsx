@@ -10,6 +10,24 @@ const ExportPage: React.FC = () => {
   const { toast } = useToast();
 
   const generateHtml = async (products: Product[]): Promise<string> => {
+    // Fetch company info first
+    const { data: companyInfoData } = await supabase
+      .from('company_info')
+      .select('*')
+      .order('id')
+      .limit(1)
+      .single();
+    
+    const companyInfo = companyInfoData || {
+      name: 'RJ Ecommerce',
+      address: '',
+      email: '',
+      phone: '',
+      whatsapp: '',
+      instagram: '',
+      facebook: ''
+    };
+    
     // Group products by category
     const productsByCategory: Record<string, Product[]> = {};
     const categoriesMap: Record<number, string> = {};
@@ -99,6 +117,14 @@ const ExportPage: React.FC = () => {
         height: 100%;
         object-fit: cover;
       }
+      .no-image {
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #2a2a2a;
+        color: #777;
+      }
       .product-details {
         padding: 15px;
       }
@@ -139,6 +165,37 @@ const ExportPage: React.FC = () => {
         padding: 20px 0;
         margin-top: 40px;
       }
+      .contact-info {
+        background: #1a1a1a;
+        padding: 20px;
+        margin-top: 40px;
+        border-radius: 8px;
+        border: 1px solid #d4af37;
+      }
+      .contact-info h3 {
+        color: #d4af37;
+        margin-bottom: 15px;
+      }
+      .contact-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+      }
+      .contact-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .contact-item i {
+        color: #d4af37;
+        margin-right: 10px;
+        font-size: 1.2rem;
+      }
+      .empty-products {
+        text-align: center;
+        padding: 40px 0;
+        color: #b0b0b0;
+      }
       @media (max-width: 768px) {
         .products-grid {
           grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -146,52 +203,107 @@ const ExportPage: React.FC = () => {
       }
     `;
 
+    const productsSections = Object.keys(productsByCategory).length > 0 
+      ? Object.entries(productsByCategory).map(([category, products]) => `
+          <section class="category-section">
+              <h2>${category}</h2>
+              <div class="products-grid">
+                  ${products.map(product => `
+                      <div class="product-card">
+                          <div class="product-image">
+                              ${product.image_url ? 
+                                  `<img src="${product.image_url}" alt="${product.name}">` : 
+                                  '<div class="no-image">Sem imagem</div>'
+                              }
+                          </div>
+                          <div class="product-details">
+                              <h3 class="product-name">${product.name}</h3>
+                              <div class="product-price">R$ ${product.price.toFixed(2)}</div>
+                              <p class="product-description">${product.description || ''}</p>
+                              <a href="${product.purchase_link || '#'}" class="buy-button" target="_blank">Comprar Agora</a>
+                          </div>
+                      </div>
+                  `).join('')}
+              </div>
+          </section>
+      `).join('')
+      : `<div class="empty-products">
+            <h2>Loja em construção</h2>
+            <p>Nossa loja está sendo preparada. Em breve teremos produtos disponíveis para você!</p>
+         </div>`;
+
     const html = `
       <!DOCTYPE html>
       <html lang="pt-BR">
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Loja - Exportação HTML</title>
+          <title>${companyInfo.name || 'Loja'} - Catálogo de Produtos</title>
           <style>${css}</style>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
       </head>
       <body>
           <header>
               <div class="container">
-                  <h1>RJ Ecommerce</h1>
+                  <h1>${companyInfo.name || 'RJ Ecommerce'}</h1>
                   <p>Nossa seleção de produtos</p>
               </div>
           </header>
           
           <main class="container">
-              ${Object.entries(productsByCategory).map(([category, products]) => `
-                  <section class="category-section">
-                      <h2>${category}</h2>
-                      <div class="products-grid">
-                          ${products.map(product => `
-                              <div class="product-card">
-                                  <div class="product-image">
-                                      ${product.image_url ? 
-                                          `<img src="${product.image_url}" alt="${product.name}">` : 
-                                          '<div class="no-image">Sem imagem</div>'
-                                      }
-                                  </div>
-                                  <div class="product-details">
-                                      <h3 class="product-name">${product.name}</h3>
-                                      <div class="product-price">R$ ${product.price.toFixed(2)}</div>
-                                      <p class="product-description">${product.description || ''}</p>
-                                      <a href="${product.purchase_link}" class="buy-button" target="_blank">Comprar Agora</a>
-                                  </div>
-                              </div>
-                          `).join('')}
-                      </div>
-                  </section>
-              `).join('')}
+              ${productsSections}
+              
+              <div class="contact-info">
+                  <h3>Entre em Contato</h3>
+                  <div class="contact-list">
+                      ${companyInfo.address ? `
+                          <div class="contact-item">
+                              <i class="fas fa-map-marker-alt"></i>
+                              <span>${companyInfo.address}</span>
+                          </div>
+                      ` : ''}
+                      
+                      ${companyInfo.email ? `
+                          <div class="contact-item">
+                              <i class="fas fa-envelope"></i>
+                              <span><a href="mailto:${companyInfo.email}" style="color: inherit; text-decoration: none;">${companyInfo.email}</a></span>
+                          </div>
+                      ` : ''}
+                      
+                      ${companyInfo.phone ? `
+                          <div class="contact-item">
+                              <i class="fas fa-phone"></i>
+                              <span><a href="tel:${companyInfo.phone}" style="color: inherit; text-decoration: none;">${companyInfo.phone}</a></span>
+                          </div>
+                      ` : ''}
+                      
+                      ${companyInfo.whatsapp ? `
+                          <div class="contact-item">
+                              <i class="fab fa-whatsapp"></i>
+                              <span><a href="https://wa.me/${companyInfo.whatsapp.replace(/\D/g, '')}" target="_blank" style="color: inherit; text-decoration: none;">${companyInfo.whatsapp}</a></span>
+                          </div>
+                      ` : ''}
+                      
+                      ${companyInfo.instagram ? `
+                          <div class="contact-item">
+                              <i class="fab fa-instagram"></i>
+                              <span><a href="https://instagram.com/${companyInfo.instagram.replace('@', '')}" target="_blank" style="color: inherit; text-decoration: none;">@${companyInfo.instagram.replace('@', '')}</a></span>
+                          </div>
+                      ` : ''}
+                      
+                      ${companyInfo.facebook ? `
+                          <div class="contact-item">
+                              <i class="fab fa-facebook"></i>
+                              <span><a href="https://facebook.com/${companyInfo.facebook}" target="_blank" style="color: inherit; text-decoration: none;">${companyInfo.facebook}</a></span>
+                          </div>
+                      ` : ''}
+                  </div>
+              </div>
           </main>
           
           <footer>
               <div class="container">
-                  <p>&copy; ${new Date().getFullYear()} RJ Ecommerce. Todos os direitos reservados.</p>
+                  <p>&copy; ${new Date().getFullYear()} ${companyInfo.name || 'RJ Ecommerce'}. Todos os direitos reservados.</p>
               </div>
           </footer>
       </body>
@@ -212,24 +324,11 @@ const ExportPage: React.FC = () => {
 
       if (error) throw error;
 
-      if (!products || products.length === 0) {
-        toast({
-          title: "Aviso",
-          description: "Não há produtos para exportar.",
-          variant: "default"
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Convert products to include purchase_link
-      const productsWithLinks = products.map(product => ({
-        ...product,
-        purchase_link: product.purchase_link || product.image_url || ''
-      }));
+      // Even if there are no products, we'll generate the HTML
+      const productsToUse = products || [];
 
       // Generate HTML
-      const html = await generateHtml(productsWithLinks);
+      const html = await generateHtml(productsToUse);
       
       // Create a blob and download link
       const blob = new Blob([html], { type: 'text/html' });

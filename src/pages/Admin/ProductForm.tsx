@@ -1,228 +1,65 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../../integrations/supabase/client';
-import { Product, NewProduct } from '../../types/supabase';
-import { useToast } from '@/hooks/use-toast';
-import { v4 as uuidv4 } from 'uuid';
-import { Image, Upload, FolderOpen } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Category } from '@/types/supabase';
 
 const ProductForm: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const isEditMode = !!id;
+  const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isEditMode = !!id;
+
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [purchaseLink, setPurchaseLink] = useState('');
+  const [categoryId, setCategoryId] = useState<string>('');
+  const [newCategory, setNewCategory] = useState('');
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   
-  const [formData, setFormData] = useState<NewProduct>({
-    name: '',
-    price: 0,
-    description: '',
-    image_url: '',
-    purchase_link: '',
-    category_id: null
-  });
-  
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
-  const [fetchLoading, setFetchLoading] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
-  const [imageSource, setImageSource] = useState<'url' | 'upload' | 'existing'>('url');
-  const [existingImages, setExistingImages] = useState<string[]>([]);
-  
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     fetchCategories();
-    fetchExistingImages();
-    if (isEditMode && id) {
-      fetchProduct(parseInt(id, 10));
+    
+    if (isEditMode) {
+      fetchProduct();
     }
-  }, [id, isEditMode]);
+  }, [id]);
 
   const fetchCategories = async () => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
         .order('name');
-
-      if (error) {
-        throw error;
-      }
-
-      setCategories(data || []);
+        
+      if (error) throw error;
+      if (data) setCategories(data);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error('Erro ao buscar categorias:', error);
       toast({
-        title: "Erro ao carregar categorias",
-        description: "Não foi possível carregar as categorias. Tente novamente mais tarde.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const fetchExistingImages = async () => {
-    try {
-      // First check if we have any image files in the public directory
-      const response = await fetch('/api/images');
-      if (response.ok) {
-        const data = await response.json();
-        setExistingImages(data.images);
-      }
-    } catch (error) {
-      console.error('Error fetching images:', error);
-      // Silently fail, as this is not critical
-    }
-  };
-
-  const fetchProduct = async (productId: number) => {
-    try {
-      setFetchLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, categories(id, name)')
-        .eq('id', productId)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        // Transform data to include purchase_link
-        setFormData({
-          ...data,
-          purchase_link: data.purchase_link || data.image_url || '',
-          category_id: data.category_id
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching product:', error);
-      toast({
-        title: "Erro ao carregar produto",
-        description: "Não foi possível carregar os dados do produto. Tente novamente mais tarde.",
-        variant: "destructive"
-      });
-      navigate('/admin');
-    } finally {
-      setFetchLoading(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { id, value } = e.target;
-    setFormData({
-      ...formData,
-      [id.replace('product-', '')]: id === 'product-price' 
-        ? parseFloat(value) 
-        : id === 'product-category_id' 
-          ? (value ? parseInt(value, 10) : null) 
-          : value
-    });
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const file = files[0];
-    setUploadingImage(true);
-    
-    try {
-      // Generate a unique filename
-      const fileName = `${uuidv4()}-${file.name.replace(/\s/g, '_')}`;
-      
-      // Upload the file to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('product-images')
-        .upload(fileName, file);
-
-      if (error) {
-        throw error;
-      }
-
-      // Get the public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(fileName);
-
-      setFormData({
-        ...formData,
-        image_url: publicUrlData.publicUrl
-      });
-      
-      toast({
-        title: "Imagem enviada com sucesso",
-        description: "Sua imagem foi carregada e vinculada ao produto.",
-      });
-
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Erro ao enviar imagem",
-        description: "Não foi possível enviar a imagem. Tente novamente mais tarde.",
-        variant: "destructive"
-      });
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  const handleExistingImageSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      image_url: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      // Extract data for Supabase
-      const supabaseData = {
-        name: formData.name,
-        price: formData.price,
-        description: formData.description,
-        image_url: formData.image_url,
-        purchase_link: formData.purchase_link,
-        category_id: formData.category_id
-      };
-      
-      if (isEditMode) {
-        const { error } = await supabase
-          .from('products')
-          .update(supabaseData)
-          .eq('id', Number(id));
-
-        if (error) {
-          throw error;
-        }
-
-        toast({
-          title: "Sucesso",
-          description: "Produto atualizado com sucesso!",
-        });
-      } else {
-        const { error } = await supabase
-          .from('products')
-          .insert([supabaseData]);
-
-        if (error) {
-          throw error;
-        }
-
-        toast({
-          title: "Sucesso",
-          description: "Produto adicionado com sucesso!",
-        });
-      }
-
-      navigate('/admin');
-    } catch (error) {
-      console.error('Error saving product:', error);
-      toast({
-        title: "Erro ao salvar produto",
-        description: "Não foi possível salvar o produto. Tente novamente mais tarde.",
+        title: "Erro",
+        description: "Não foi possível carregar as categorias.",
         variant: "destructive"
       });
     } finally {
@@ -230,199 +67,301 @@ const ProductForm: React.FC = () => {
     }
   };
 
-  if (fetchLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold-500"></div>
-      </div>
-    );
+  const fetchProduct = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error) throw error;
+      
+      if (data) {
+        setName(data.name);
+        setDescription(data.description || '');
+        setPrice(data.price.toString());
+        setImageUrl(data.image_url || '');
+        setPurchaseLink(data.purchase_link || '');
+        setCategoryId(data.category_id ? data.category_id.toString() : '');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar produto:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar o produto.",
+        variant: "destructive"
+      });
+      navigate('/admin');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCategoryChange = (value: string) => {
+    if (value === 'new') {
+      setShowNewCategoryInput(true);
+      setCategoryId('');
+    } else {
+      setShowNewCategoryInput(false);
+      setCategoryId(value);
+    }
+  };
+
+  const createCategory = async (): Promise<number | null> => {
+    if (!newCategory.trim()) return null;
+    
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .insert([{ name: newCategory.trim() }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Update categories list
+      setCategories([...categories, data]);
+      
+      toast({
+        title: "Categoria criada",
+        description: `A categoria "${newCategory}" foi criada com sucesso.`
+      });
+      
+      return data.id;
+    } catch (error) {
+      console.error('Erro ao criar categoria:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar a categoria.",
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    
+    try {
+      // Process category first
+      let finalCategoryId = parseInt(categoryId);
+      
+      if (showNewCategoryInput) {
+        const newCatId = await createCategory();
+        if (newCatId) finalCategoryId = newCatId;
+      }
+      
+      // Format price to number
+      const numericPrice = parseFloat(price.replace(',', '.'));
+      
+      if (isNaN(numericPrice)) {
+        throw new Error('Preço inválido');
+      }
+
+      const productData = {
+        name,
+        description: description || null,
+        price: numericPrice,
+        image_url: imageUrl || null,
+        purchase_link: purchaseLink || null,
+        category_id: finalCategoryId || null
+      };
+
+      if (isEditMode) {
+        // Update existing product
+        const { error } = await supabase
+          .from('products')
+          .update(productData)
+          .eq('id', id);
+          
+        if (error) throw error;
+        
+        toast({
+          title: "Produto atualizado",
+          description: "O produto foi atualizado com sucesso."
+        });
+      } else {
+        // Create new product
+        const { error } = await supabase
+          .from('products')
+          .insert([productData]);
+          
+        if (error) throw error;
+        
+        toast({
+          title: "Produto criado",
+          description: "O produto foi criado com sucesso."
+        });
+      }
+      
+      navigate('/admin');
+    } catch (error) {
+      console.error('Erro ao salvar produto:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar o produto.",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center p-8">Carregando...</div>;
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-2xl font-bold gold-text">
-          {isEditMode ? 'Editar Produto' : 'Adicionar Novo Produto'}
+          {isEditMode ? 'Editar Produto' : 'Adicionar Produto'}
         </h2>
       </div>
       
-      <form 
-        onSubmit={handleSubmit} 
-        className="bg-dark-700 p-6 rounded-lg shadow border border-gold-500"
-      >
-        <div className="mb-4">
-          <label htmlFor="product-name" className="block gold-text mb-2">Nome do Produto</label>
-          <input 
-            type="text" 
-            id="product-name" 
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" 
-            required
-          />
-        </div>
-        
-        <div className="mb-4">
-          <label htmlFor="product-price" className="block gold-text mb-2">Preço</label>
-          <input 
-            type="number" 
-            step="0.01" 
-            id="product-price" 
-            value={formData.price}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" 
-            required
-          />
-        </div>
-        
-        <div className="mb-4">
-          <label htmlFor="product-category_id" className="block gold-text mb-2">Categoria</label>
-          <select
-            id="product-category_id"
-            value={formData.category_id || ''}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white"
-          >
-            <option value="">Selecione uma categoria</option>
-            {categories.map(category => (
-              <option key={category.id} value={category.id}>{category.name}</option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="mb-4">
-          <label htmlFor="product-description" className="block gold-text mb-2">Descrição</label>
-          <textarea 
-            id="product-description" 
-            rows={3} 
-            value={formData.description}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" 
-            required
-          ></textarea>
-        </div>
-        
-        <div className="mb-4">
-          <label className="block gold-text mb-2">Imagem do Produto</label>
-          
-          <div className="flex space-x-4 mb-3">
-            <button
-              type="button"
-              onClick={() => setImageSource('url')}
-              className={`flex items-center px-4 py-2 rounded ${imageSource === 'url' ? 'gold-bg text-dark-900' : 'border border-gold-500 text-gold-500'}`}
-            >
-              <Image className="h-4 w-4 mr-2" /> URL
-            </button>
-            <button
-              type="button"
-              onClick={() => setImageSource('upload')}
-              className={`flex items-center px-4 py-2 rounded ${imageSource === 'upload' ? 'gold-bg text-dark-900' : 'border border-gold-500 text-gold-500'}`}
-            >
-              <Upload className="h-4 w-4 mr-2" /> Upload
-            </button>
-            <button
-              type="button"
-              onClick={() => setImageSource('existing')}
-              className={`flex items-center px-4 py-2 rounded ${imageSource === 'existing' ? 'gold-bg text-dark-900' : 'border border-gold-500 text-gold-500'}`}
-            >
-              <FolderOpen className="h-4 w-4 mr-2" /> Existentes
-            </button>
-          </div>
-          
-          {imageSource === 'url' && (
-            <input 
-              type="url" 
-              id="product-image_url" 
-              value={formData.image_url}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" 
-              placeholder="https://exemplo.com/imagem.jpg"
-              required={!formData.image_url}
-            />
-          )}
-          
-          {imageSource === 'upload' && (
+      <Card className="bg-dark-700 border border-gold-500">
+        <CardHeader>
+          <CardTitle className="text-gold-500">
+            {isEditMode ? 'Editar Produto' : 'Novo Produto'}
+          </CardTitle>
+          <CardDescription>
+            Preencha os campos abaixo para {isEditMode ? 'atualizar o' : 'criar um novo'} produto.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <input 
-                type="file" 
-                id="image-upload" 
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden" 
+              <Label htmlFor="name">Nome do Produto *</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-dark-800 border-gold-500 text-white"
+                required
               />
-              <label 
-                htmlFor="image-upload" 
-                className="inline-block px-4 py-2 border border-gold-500 rounded-lg text-gold-500 cursor-pointer hover:bg-dark-600"
-              >
-                {uploadingImage ? 'Enviando...' : 'Selecionar Imagem'}
-              </label>
-              {formData.image_url && (
-                <div className="mt-2">
-                  <p className="text-sm text-gray-300">Imagem selecionada:</p>
-                  <div className="mt-1 h-24 w-24 border border-gold-500 rounded overflow-hidden">
-                    <img src={formData.image_url} alt="Preview" className="h-full w-full object-cover" />
-                  </div>
-                </div>
-              )}
             </div>
-          )}
-          
-          {imageSource === 'existing' && (
-            <div>
-              {existingImages.length > 0 ? (
-                <select
-                  value={formData.image_url}
-                  onChange={handleExistingImageSelect}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white"
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">Descrição</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="bg-dark-800 border-gold-500 text-white"
+                rows={3}
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price">Preço *</Label>
+                <Input
+                  id="price"
+                  type="text"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="bg-dark-800 border-gold-500 text-white"
+                  placeholder="0,00"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="category">Categoria</Label>
+                <Select 
+                  value={categoryId.toString()} 
+                  onValueChange={handleCategoryChange}
                 >
-                  <option value="">Selecione uma imagem</option>
-                  {existingImages.map((image, index) => (
-                    <option key={index} value={image}>{image.split('/').pop()}</option>
-                  ))}
-                </select>
-              ) : (
-                <p className="text-gray-400">Nenhuma imagem disponível.</p>
-              )}
-              {formData.image_url && (
-                <div className="mt-2">
-                  <div className="mt-1 h-24 w-24 border border-gold-500 rounded overflow-hidden">
-                    <img src={formData.image_url} alt="Preview" className="h-full w-full object-cover" />
+                  <SelectTrigger className="bg-dark-800 border-gold-500 text-white">
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="">Sem categoria</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="new">+ Nova categoria</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                
+                {showNewCategoryInput && (
+                  <div className="mt-2">
+                    <Input
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      className="bg-dark-800 border-gold-500 text-white"
+                      placeholder="Nome da nova categoria"
+                    />
                   </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="imageUrl">URL da Imagem</Label>
+              <Input
+                id="imageUrl"
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                className="bg-dark-800 border-gold-500 text-white"
+                placeholder="https://exemplo.com/imagem.jpg"
+              />
+              {imageUrl && (
+                <div className="mt-2 p-2 border border-gold-500 rounded-md">
+                  <img 
+                    src={imageUrl} 
+                    alt="Preview" 
+                    className="max-h-40 max-w-full object-contain mx-auto"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).onerror = null;
+                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Erro+na+imagem';
+                    }}
+                  />
                 </div>
               )}
             </div>
-          )}
-        </div>
-        
-        <div className="mb-4">
-          <label htmlFor="product-purchase_link" className="block gold-text mb-2">Link de Compra</label>
-          <input 
-            type="url" 
-            id="product-purchase_link" 
-            value={formData.purchase_link}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-dark-800 border-gold-500 text-white" 
-            required
-          />
-        </div>
-        
-        <div className="flex justify-end space-x-4">
-          <button 
-            type="button" 
-            onClick={() => navigate('/admin')}
-            className="px-4 py-2 border border-gold-500 rounded-lg text-gold-500 hover:bg-dark-600"
-          >
-            Cancelar
-          </button>
-          <button 
-            type="submit"
-            disabled={loading}
-            className="px-4 py-2 gold-bg text-dark-900 rounded-lg hover:bg-gold-600 disabled:opacity-50"
-          >
-            {loading ? 'Salvando...' : 'Salvar Produto'}
-          </button>
-        </div>
-      </form>
+            
+            <div className="space-y-2">
+              <Label htmlFor="purchaseLink">Link de Compra</Label>
+              <Input
+                id="purchaseLink"
+                type="url"
+                value={purchaseLink}
+                onChange={(e) => setPurchaseLink(e.target.value)}
+                className="bg-dark-800 border-gold-500 text-white"
+                placeholder="https://exemplo.com/comprar"
+              />
+            </div>
+            
+            <div className="flex gap-4 pt-2">
+              <Button 
+                type="submit" 
+                className="bg-gold-500 hover:bg-gold-600 text-dark-900"
+                disabled={saving}
+              >
+                {saving ? 'Salvando...' : isEditMode ? 'Atualizar Produto' : 'Criar Produto'}
+              </Button>
+              
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="border-gold-500 text-gold-500 hover:bg-dark-600"
+                onClick={() => navigate('/admin')}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

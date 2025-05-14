@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Box, CirclePlus, Key, LogOut, FileCode } from 'lucide-react';
+import { Box, CirclePlus, Key, LogOut, FileCode, Building } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -48,6 +48,16 @@ const AdminLayout: React.FC = () => {
               }`}
             >
               <CirclePlus className="inline-block mr-2" /> Adicionar Produto
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/admin/company-info"
+              className={`block py-2 px-4 rounded hover:bg-dark-700 border border-gold-500 ${
+                location.pathname === '/admin/company-info' ? 'bg-dark-700' : ''
+              }`}
+            >
+              <Building className="inline-block mr-2" /> Dados da Empresa
             </Link>
           </li>
           <li>
