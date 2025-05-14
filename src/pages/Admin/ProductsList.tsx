@@ -25,7 +25,7 @@ const ProductsList: React.FC = () => {
       // Transform data to include purchase_link
       const productsWithPurchaseLink = data?.map(product => ({
         ...product,
-        purchase_link: product.image_url || '' // Using image_url as fallback for purchase_link
+        purchase_link: product.purchase_link || '' // Using image_url as fallback for purchase_link
       })) || [];
 
       setProducts(productsWithPurchaseLink);
