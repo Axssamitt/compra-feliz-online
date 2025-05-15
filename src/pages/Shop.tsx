@@ -3,10 +3,19 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Product } from '../types/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+
+interface ProductWithImages extends Product {
+  images?: Array<{
+    id: string;
+    image_url: string;
+    is_main: boolean;
+  }>;
+  currentImageIndex?: number;
+}
 
 const Shop: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithImages[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -22,8 +31,35 @@ const Shop: React.FC = () => {
           throw error;
         }
 
-        console.log("Products fetched:", data);
-        setProducts(data || []);
+        // Fetch images for each product
+        const productsWithImages: ProductWithImages[] = [];
+        
+        for (const product of data || []) {
+          const { data: imageData, error: imageError } = await supabase
+            .from('product_images')
+            .select('id, image_url, is_main')
+            .eq('product_id', product.id)
+            .order('is_main', { ascending: false });
+            
+          if (imageError) {
+            console.error('Error fetching product images:', imageError);
+          }
+          
+          // If we have no images, use the legacy image_url if available
+          const images = imageData && imageData.length > 0 
+            ? imageData 
+            : product.image_url 
+              ? [{ id: 'legacy', image_url: product.image_url, is_main: true }] 
+              : [];
+              
+          productsWithImages.push({
+            ...product,
+            images,
+            currentImageIndex: 0
+          });
+        }
+
+        setProducts(productsWithImages);
       } catch (error) {
         console.error('Error fetching products:', error);
         toast({
@@ -38,6 +74,21 @@ const Shop: React.FC = () => {
 
     fetchProducts();
   }, [toast]);
+
+  const navigateImage = (productId: number, direction: 'next' | 'prev') => {
+    setProducts(prev => prev.map(product => {
+      if (product.id === productId && product.images && product.images.length > 1) {
+        const currentIndex = product.currentImageIndex || 0;
+        const totalImages = product.images.length;
+        let newIndex = direction === 'next' 
+          ? (currentIndex + 1) % totalImages 
+          : (currentIndex - 1 + totalImages) % totalImages;
+        
+        return { ...product, currentImageIndex: newIndex };
+      }
+      return product;
+    }));
+  };
 
   if (loading) {
     return (
@@ -62,17 +113,55 @@ const Shop: React.FC = () => {
               key={product.id} 
               className="product-card bg-dark-700 rounded-xl shadow-md overflow-hidden transition duration-300 border border-gold-500"
             >
-              <div className="h-48 overflow-hidden">
-                {product.image_url ? (
-                  <img 
-                    src={product.image_url} 
-                    alt={product.name} 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      console.error(`Error loading image for ${product.name}`);
-                      (e.target as HTMLImageElement).src = '/placeholder.svg';
-                    }}
-                  />
+              <div className="h-48 overflow-hidden relative">
+                {product.images && product.images.length > 0 ? (
+                  <>
+                    <img 
+                      src={product.images[product.currentImageIndex || 0]?.image_url} 
+                      alt={product.name} 
+                      className="w-full h-full object-cover transition-opacity"
+                      onError={(e) => {
+                        console.error(`Error loading image for ${product.name}`);
+                        (e.target as HTMLImageElement).src = '/placeholder.svg';
+                      }}
+                    />
+                    
+                    {/* Image navigation buttons */}
+                    {product.images.length > 1 && (
+                      <>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigateImage(product.id, 'prev');
+                          }}
+                          className="absolute left-1 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 rounded-full p-1 hover:bg-opacity-70 transition"
+                          aria-label="Previous image"
+                        >
+                          <ChevronLeft className="w-5 h-5 text-white" />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigateImage(product.id, 'next');
+                          }}
+                          className="absolute right-1 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 rounded-full p-1 hover:bg-opacity-70 transition"
+                          aria-label="Next image"
+                        >
+                          <ChevronRight className="w-5 h-5 text-white" />
+                        </button>
+                        
+                        {/* Image indicators */}
+                        <div className="absolute bottom-1 left-0 right-0 flex justify-center space-x-1">
+                          {product.images.map((_, idx) => (
+                            <span 
+                              key={idx} 
+                              className={`block h-1.5 w-1.5 rounded-full ${idx === (product.currentImageIndex || 0) ? 'bg-gold-500' : 'bg-white bg-opacity-60'}`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
                 ) : (
                   <div className="w-full h-full bg-dark-800 flex items-center justify-center">
                     <span className="text-gray-400">No image</span>

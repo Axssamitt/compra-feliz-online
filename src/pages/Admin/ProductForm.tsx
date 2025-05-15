@@ -8,6 +8,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import ProductImageManager from '@/components/ProductImageManager';
+import { 
+  Dialog,
+  DialogContent, 
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const ProductForm = () => {
   const { id } = useParams();
@@ -17,6 +24,9 @@ const ProductForm = () => {
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [savedProductId, setSavedProductId] = useState<number | null>(null);
+  const [showImageManager, setShowImageManager] = useState(false);
+  const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [product, setProduct] = useState<Product>({
     id: 0,
     name: '',
@@ -48,6 +58,7 @@ const ProductForm = () => {
         if (data) {
           setProduct(data);
           setCategoryId(data.category_id);
+          setSavedProductId(data.id);
           
           // If the product has a category, set newCategory to its name
           if (data.category_id) {
@@ -60,6 +71,20 @@ const ProductForm = () => {
             if (!categoryError && categoryData) {
               setNewCategory(categoryData.name);
             }
+          }
+          
+          // Fetch main image
+          const { data: imageData, error: imageError } = await supabase
+            .from('product_images')
+            .select('*')
+            .eq('product_id', data.id)
+            .eq('is_main', true)
+            .maybeSingle();
+            
+          if (!imageError && imageData) {
+            setMainImageUrl(imageData.image_url);
+          } else {
+            setMainImageUrl(data.image_url); // Fallback to legacy image
           }
         }
       } catch (error) {
@@ -182,24 +207,39 @@ const ProductForm = () => {
           .from('products')
           .update(productData)
           .eq('id', parseInt(id as string)); // Convert string id to number
+          
+        if (result.error) throw result.error;
+        setSavedProductId(parseInt(id as string));
+        
       } else {
         // Create new product
         result = await supabase
           .from('products')
-          .insert([productData]);
+          .insert([productData])
+          .select()
+          .single();
+          
+        if (result.error) throw result.error;
+        
+        if (result.data) {
+          setSavedProductId(result.data.id);
+        }
       }
       
-      if (result.error) throw result.error;
-
       toast({
         title: isEditMode ? "Produto atualizado" : "Produto criado",
         description: isEditMode 
-          ? "O produto foi atualizado com sucesso." 
-          : "O produto foi criado com sucesso.",
+          ? "O produto foi atualizado com sucesso. Você pode gerenciar as imagens agora." 
+          : "O produto foi criado com sucesso. Você pode adicionar imagens agora.",
       });
       
-      // Redirect to products list
-      navigate('/admin');
+      // Open image manager if we have a product ID
+      if (savedProductId || (result.data && result.data.id)) {
+        setShowImageManager(true);
+      } else {
+        // Redirect to products list if for some reason we don't have a product ID
+        navigate('/admin');
+      }
       
     } catch (error) {
       console.error('Error saving product:', error);
@@ -213,15 +253,10 @@ const ProductForm = () => {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProduct({ ...product, image_url: reader.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleImageManagerClose = () => {
+    setShowImageManager(false);
+    // Redirect to products list
+    navigate('/admin');
   };
 
   if (isLoading) {
@@ -237,6 +272,8 @@ const ProductForm = () => {
       <h1 className="text-2xl font-bold gold-text mb-6">
         {isEditMode ? 'Editar Produto' : 'Adicionar Produto'}
       </h1>
+      
+      {/* Main product form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <Label htmlFor="name">Nome do Produto</Label>
@@ -244,6 +281,7 @@ const ProductForm = () => {
             id="name"
             value={product.name}
             onChange={(e) => setProduct({ ...product, name: e.target.value })}
+            className="border-gray-600 bg-dark-700 text-white"
             required
           />
         </div>
@@ -255,6 +293,7 @@ const ProductForm = () => {
             step="0.01"
             value={product.price}
             onChange={(e) => setProduct({ ...product, price: Number(e.target.value) })}
+            className="border-gray-600 bg-dark-700 text-white"
             required
           />
         </div>
@@ -264,6 +303,7 @@ const ProductForm = () => {
             id="description"
             value={product.description || ''}
             onChange={(e) => setProduct({ ...product, description: e.target.value })}
+            className="border-gray-600 bg-dark-700 text-white"
           />
         </div>
         <div className="space-y-2">
@@ -275,6 +315,7 @@ const ProductForm = () => {
               onChange={handleCategoryChange}
               placeholder="Digite ou selecione uma categoria"
               list="categories-list"
+              className="border-gray-600 bg-dark-700 text-white"
             />
             <datalist id="categories-list">
               {categories.map(category => (
@@ -290,27 +331,27 @@ const ProductForm = () => {
             value={product.purchase_link || ''}
             onChange={(e) => setProduct({ ...product, purchase_link: e.target.value })}
             placeholder="https://..."
+            className="border-gray-600 bg-dark-700 text-white"
           />
         </div>
-        <div>
-          <Label htmlFor="image">Imagem</Label>
-          <Input
-            id="image"
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-          />
-          {product.image_url && (
+        
+        {/* Display the main image if available */}
+        {mainImageUrl && (
+          <div>
+            <Label>Imagem Principal</Label>
             <div className="mt-2">
-              <p className="mb-1 text-sm">Preview:</p>
               <img 
-                src={product.image_url} 
-                alt="Preview" 
+                src={mainImageUrl} 
+                alt={product.name} 
                 className="h-32 w-32 object-cover rounded-md border border-gold-500" 
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/placeholder.svg';
+                }}
               />
             </div>
-          )}
-        </div>
+          </div>
+        )}
+        
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? (
             <>
@@ -322,6 +363,27 @@ const ProductForm = () => {
           )}
         </Button>
       </form>
+      
+      {/* Image Manager Dialog */}
+      <Dialog open={showImageManager} onOpenChange={handleImageManagerClose}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Imagens do Produto</DialogTitle>
+          </DialogHeader>
+          <ProductImageManager 
+            productId={savedProductId} 
+            onImagesChange={(images) => {
+              const mainImage = images.find(img => img.is_main);
+              if (mainImage) {
+                setMainImageUrl(mainImage.image_url);
+              }
+            }}
+          />
+          <div className="flex justify-end mt-4">
+            <Button onClick={handleImageManagerClose}>Concluir</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

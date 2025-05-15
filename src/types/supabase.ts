@@ -56,6 +56,32 @@ export interface Database {
           name?: string
         }
       }
+      product_images: {
+        Row: {
+          id: string
+          product_id: number
+          image_url: string
+          image_path: string | null
+          is_main: boolean | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: number
+          image_url: string
+          image_path?: string | null
+          is_main?: boolean | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: number
+          image_url?: string
+          image_path?: string | null
+          is_main?: boolean | null
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -76,3 +102,5 @@ export type NewProduct = Database['public']['Tables']['products']['Insert'];
 export type UpdateProduct = Database['public']['Tables']['products']['Update'];
 
 export type Category = Database['public']['Tables']['categories']['Row'];
+
+export type ProductImage = Database['public']['Tables']['product_images']['Row'];
