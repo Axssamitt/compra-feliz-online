@@ -10,6 +10,7 @@ import { Label } from './ui/label';
 interface ProductImage {
   id: string;
   image_url: string;
+  image_path?: string | null;
   is_main: boolean;
 }
 
