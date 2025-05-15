@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, X, Image as ImageIcon } from 'lucide-react';
+import { Loader2, X, ImagePlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -50,6 +50,7 @@ const ProductImageManager: React.FC<ProductImageManagerProps> = ({ productId, on
       
       setImages(data || []);
       if (onImagesChange) onImagesChange(data || []);
+      console.log('Fetched images:', data);
     } catch (error) {
       console.error('Error fetching product images:', error);
       toast({
@@ -85,6 +86,26 @@ const ProductImageManager: React.FC<ProductImageManagerProps> = ({ productId, on
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
         const filePath = `${fileName}`;
         
+        console.log('Uploading file:', fileName);
+        
+        // Check if the product_images bucket exists
+        const { data: bucketExists, error: bucketError } = await supabase.storage
+          .getBucket('product_images');
+          
+        // If bucket doesn't exist, create it
+        if (bucketError && bucketError.message.includes('does not exist')) {
+          console.log('Bucket does not exist, creating...');
+          const { error: createBucketError } = await supabase.storage
+            .createBucket('product_images', {
+              public: true
+            });
+            
+          if (createBucketError) {
+            throw createBucketError;
+          }
+          console.log('Bucket created successfully');
+        }
+        
         // Upload to Supabase Storage
         const { error: uploadError, data: uploadData } = await supabase.storage
           .from('product_images')
@@ -92,11 +113,15 @@ const ProductImageManager: React.FC<ProductImageManagerProps> = ({ productId, on
 
         if (uploadError) throw uploadError;
         
+        console.log('File uploaded successfully');
+        
         // Get public URL
         const { data: publicUrlData } = supabase.storage
           .from('product_images')
           .getPublicUrl(filePath);
           
+        console.log('Public URL:', publicUrlData.publicUrl);
+        
         // Save to product_images table
         const isMain = images.length === 0; // First image is main
         const { error: dbError, data: imageData } = await supabase
@@ -112,6 +137,8 @@ const ProductImageManager: React.FC<ProductImageManagerProps> = ({ productId, on
           
         if (dbError) throw dbError;
         
+        console.log('Image saved to database:', imageData);
+        
         // Update local state
         if (imageData) {
           setImages(prev => [...prev, imageData]);
@@ -123,11 +150,14 @@ const ProductImageManager: React.FC<ProductImageManagerProps> = ({ productId, on
         title: "Imagens enviadas",
         description: "As imagens foram adicionadas com sucesso.",
       });
+      
+      // Refresh the images list
+      fetchProductImages();
     } catch (error) {
       console.error('Error uploading images:', error);
       toast({
         title: "Erro ao enviar imagens",
-        description: "Não foi possível enviar as imagens.",
+        description: "Não foi possível enviar as imagens. Verifique se o bucket 'product_images' existe.",
         variant: "destructive"
       });
     } finally {
@@ -185,6 +215,9 @@ const ProductImageManager: React.FC<ProductImageManagerProps> = ({ productId, on
         title: "Imagem adicionada",
         description: "A URL da imagem foi adicionada com sucesso.",
       });
+      
+      // Refresh the images list
+      fetchProductImages();
     } catch (error) {
       console.error('Error adding image URL:', error);
       toast({
@@ -227,8 +260,7 @@ const ProductImageManager: React.FC<ProductImageManagerProps> = ({ productId, on
       
       // If we removed the main image and there are other images, set a new main
       if (imageToRemove.is_main && updatedImages.length > 0) {
-        const newMainId = updatedImages[0].id;
-        await setMainImage(newMainId);
+        await setMainImage(updatedImages[0].id);
       }
       
       toast({
@@ -321,7 +353,7 @@ const ProductImageManager: React.FC<ProductImageManagerProps> = ({ productId, on
                         onClick={() => setMainImage(image.id)}
                         title="Definir como principal"
                       >
-                        <ImageIcon size={12} className="text-gold-500" />
+                        <ImagePlus size={12} className="text-gold-500" />
                       </Button>
                     )}
                     <Button 

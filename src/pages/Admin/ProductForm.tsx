@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import ProductImageManager from '@/components/ProductImageManager';
+import { ensureProductImagesBucket } from '@/api/images';
 import { 
   Dialog,
   DialogContent, 
@@ -39,6 +41,15 @@ const ProductForm = () => {
   });
   const { toast } = useToast();
   const isEditMode = Boolean(id);
+
+  // Ensure storage bucket exists when component loads
+  useEffect(() => {
+    const checkStorageBucket = async () => {
+      await ensureProductImagesBucket();
+    };
+    
+    checkStorageBucket();
+  }, []);
 
   // Fetch product if in edit mode
   useEffect(() => {
@@ -235,6 +246,9 @@ const ProductForm = () => {
       
       // Open image manager if we have a product ID
       if (savedProductId || (result.data && result.data.id)) {
+        const productId = savedProductId || (result.data && result.data.id);
+        setSavedProductId(productId);
+        console.log("Saved product ID for image manager:", productId);
         setShowImageManager(true);
       } else {
         // Redirect to products list if for some reason we don't have a product ID
@@ -370,15 +384,18 @@ const ProductForm = () => {
           <DialogHeader>
             <DialogTitle>Gerenciar Imagens do Produto</DialogTitle>
           </DialogHeader>
-          <ProductImageManager 
-            productId={savedProductId} 
-            onImagesChange={(images) => {
-              const mainImage = images.find(img => img.is_main);
-              if (mainImage) {
-                setMainImageUrl(mainImage.image_url);
-              }
-            }}
-          />
+          {savedProductId && (
+            <ProductImageManager 
+              productId={savedProductId} 
+              onImagesChange={(images) => {
+                console.log("Images changed:", images);
+                const mainImage = images.find(img => img.is_main);
+                if (mainImage) {
+                  setMainImageUrl(mainImage.image_url);
+                }
+              }}
+            />
+          )}
           <div className="flex justify-end mt-4">
             <Button onClick={handleImageManagerClose}>Concluir</Button>
           </div>
