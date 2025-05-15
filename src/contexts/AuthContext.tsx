@@ -14,54 +14,45 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Check if there's an active session
   useEffect(() => {
-    const checkSession = async () => {
+    // Função para atualizar o estado baseado na sessão
+    const updateStateFromSession = (session: any) => {
+      if (session) {
+        setIsAuthenticated(true);
+        setCurrentUser(session.user);
+      } else {
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+      }
+      setIsLoading(false);
+    };
+
+    // Primeiro configurar o listener para mudanças de estado
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      updateStateFromSession(session);
+    });
+
+    // Depois verificar se já existe uma sessão ativa
+    const checkExistingSession = async () => {
       try {
-        setIsLoading(true);
-        
-        // Listen for auth changes first
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            if (session) {
-              setIsAuthenticated(true);
-              setCurrentUser(session.user);
-            } else {
-              setIsAuthenticated(false);
-              setCurrentUser(null);
-            }
-            setIsLoading(false);
-          }
-        );
-        
-        // Then check for existing session
         const { data } = await supabase.auth.getSession();
-        
-        if (data.session) {
-          setIsAuthenticated(true);
-          setCurrentUser(data.session.user);
-        } else {
-          setIsAuthenticated(false);
-          setCurrentUser(null);
-        }
-        
-        setIsLoading(false);
-        
-        // Cleanup
-        return () => {
-          subscription.unsubscribe();
-        };
+        updateStateFromSession(data.session);
       } catch (error) {
-        console.error('Auth check error:', error);
+        console.error('Error checking session:', error);
         setIsLoading(false);
       }
     };
-    
-    checkSession();
+
+    checkExistingSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -113,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Se estiver carregando, renderize um estado de carregamento ou null
+  // Renderizar o loader enquanto verifica a autenticação
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">

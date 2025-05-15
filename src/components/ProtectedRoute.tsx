@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -11,14 +11,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
-  // Verificar se está autenticado
-  if (!isAuthenticated) {
-    // Redirecionar para login apenas se não estivermos já na página de login
-    // Isto evita um loop infinito de redirecionamento
+  // Se não estiver autenticado e não estiver na página de login, redirecionar para login
+  if (!isAuthenticated && location.pathname !== '/login') {
+    // Salvar a localização atual para redirecionar de volta após o login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Se estiver autenticado, renderizar os componentes filhos
+  // Se estiver autenticado ou já estiver na página de login, renderizar os componentes filhos
   return <>{children}</>;
 };
 
