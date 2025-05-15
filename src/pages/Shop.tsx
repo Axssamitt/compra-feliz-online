@@ -14,12 +14,44 @@ interface ProductWithImages extends Product {
   currentImageIndex?: number;
 }
 
+interface CompanyInfo {
+  name: string;
+  address: string | null;
+  email: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  instagram: string | null;
+  facebook: string | null;
+}
+
 const Shop: React.FC = () => {
   const [products, setProducts] = useState<ProductWithImages[]>([]);
   const [loading, setLoading] = useState(true);
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    const fetchCompanyInfo = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('company_info')
+          .select('*')
+          .order('id')
+          .limit(1)
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          setCompanyInfo(data);
+        }
+      } catch (error) {
+        console.error('Error fetching company info:', error);
+      }
+    };
+
     const fetchProducts = async () => {
       try {
         const { data, error } = await supabase
@@ -72,22 +104,30 @@ const Shop: React.FC = () => {
       }
     };
 
+    // Fetch both company info and products
+    fetchCompanyInfo();
     fetchProducts();
   }, [toast]);
 
   const navigateImage = (productId: number, direction: 'next' | 'prev') => {
-    setProducts(prev => prev.map(product => {
-      if (product.id === productId && product.images && product.images.length > 1) {
-        const currentIndex = product.currentImageIndex || 0;
-        const totalImages = product.images.length;
-        let newIndex = direction === 'next' 
-          ? (currentIndex + 1) % totalImages 
-          : (currentIndex - 1 + totalImages) % totalImages;
-        
-        return { ...product, currentImageIndex: newIndex };
-      }
-      return product;
-    }));
+    setProducts(prevProducts => 
+      prevProducts.map(product => {
+        if (product.id === productId && product.images && product.images.length > 1) {
+          const totalImages = product.images.length;
+          const currentIndex = product.currentImageIndex !== undefined ? product.currentImageIndex : 0;
+          
+          let newIndex;
+          if (direction === 'next') {
+            newIndex = (currentIndex + 1) % totalImages;
+          } else {
+            newIndex = (currentIndex - 1 + totalImages) % totalImages;
+          }
+          
+          return { ...product, currentImageIndex: newIndex };
+        }
+        return product;
+      })
+    );
   };
 
   if (loading) {
@@ -187,6 +227,51 @@ const Shop: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+      
+      {/* Company info section */}
+      {companyInfo && (
+        <div className="mt-16 p-6 bg-dark-700 border border-gold-500 rounded-xl">
+          <h2 className="text-2xl font-bold gold-text mb-4 text-center">Entre em Contato</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {companyInfo.address && (
+              <div className="flex items-center space-x-2">
+                <span className="text-gold-500">Endereço:</span>
+                <span className="text-gray-300">{companyInfo.address}</span>
+              </div>
+            )}
+            {companyInfo.email && (
+              <div className="flex items-center space-x-2">
+                <span className="text-gold-500">Email:</span>
+                <a href={`mailto:${companyInfo.email}`} className="text-gray-300 hover:text-gold-400">{companyInfo.email}</a>
+              </div>
+            )}
+            {companyInfo.phone && (
+              <div className="flex items-center space-x-2">
+                <span className="text-gold-500">Telefone:</span>
+                <a href={`tel:${companyInfo.phone}`} className="text-gray-300 hover:text-gold-400">{companyInfo.phone}</a>
+              </div>
+            )}
+            {companyInfo.whatsapp && (
+              <div className="flex items-center space-x-2">
+                <span className="text-gold-500">WhatsApp:</span>
+                <a href={`https://wa.me/${companyInfo.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-gold-400">{companyInfo.whatsapp}</a>
+              </div>
+            )}
+            {companyInfo.instagram && (
+              <div className="flex items-center space-x-2">
+                <span className="text-gold-500">Instagram:</span>
+                <a href={`https://instagram.com/${companyInfo.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-gold-400">@{companyInfo.instagram.replace('@', '')}</a>
+              </div>
+            )}
+            {companyInfo.facebook && (
+              <div className="flex items-center space-x-2">
+                <span className="text-gold-500">Facebook:</span>
+                <a href={`https://facebook.com/${companyInfo.facebook}`} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-gold-400">{companyInfo.facebook}</a>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
