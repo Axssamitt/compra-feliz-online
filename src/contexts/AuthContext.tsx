@@ -20,7 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check if there's an active session
   useEffect(() => {
-    // Função para atualizar o estado baseado na sessão
+    // Function to update state based on session
     const updateStateFromSession = (session: any) => {
       if (session) {
         setIsAuthenticated(true);
@@ -32,15 +32,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     };
 
-    // Primeiro configurar o listener para mudanças de estado
+    // First set up the listener for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      // Only update state if there's a change to avoid loops
       updateStateFromSession(session);
     });
 
-    // Depois verificar se já existe uma sessão ativa
+    // Then check for existing session without causing a state update loop
     const checkExistingSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
+        // Only call this once during initialization
         updateStateFromSession(data.session);
       } catch (error) {
         console.error('Error checking session:', error);
@@ -53,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, []);  // Empty dependency array to run only once
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -66,13 +68,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      if (data.session) {
-        setIsAuthenticated(true);
-        setCurrentUser(data.session.user);
-        return true;
-      } else {
-        return false;
-      }
+      // Don't need to manually set state here as onAuthStateChange will handle it
+      return !!data.session;
     } catch (error) {
       console.error('Login error:', error);
       return false;
@@ -82,8 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       await supabase.auth.signOut();
-      setIsAuthenticated(false);
-      setCurrentUser(null);
+      // Don't need to manually set state here as onAuthStateChange will handle it
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -104,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Renderizar o loader enquanto verifica a autenticação
+  // Render loading indicator while checking authentication
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">

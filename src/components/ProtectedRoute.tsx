@@ -11,13 +11,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
-  // Se não estiver autenticado e não estiver na página de login, redirecionar para login
-  if (!isAuthenticated && location.pathname !== '/login') {
-    // Salvar a localização atual para redirecionar de volta após o login
+  // If not authenticated and not on the login page, redirect to login
+  if (!isAuthenticated) {
+    // Save the current location for redirecting back after login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Se estiver autenticado ou já estiver na página de login, renderizar os componentes filhos
+  // If authenticated, render the children components
   return <>{children}</>;
 };
 

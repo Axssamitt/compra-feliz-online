@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,7 +16,7 @@ const Login: React.FC = () => {
   // Get the intended destination after login
   const from = (location.state as any)?.from?.pathname || '/admin';
 
-  // If already authenticated, redirect
+  // If already authenticated, redirect once
   useEffect(() => {
     if (isAuthenticated) {
       navigate(from, { replace: true });
@@ -34,7 +35,7 @@ const Login: React.FC = () => {
           title: "Login bem-sucedido",
           description: "Você foi autenticado com sucesso."
         });
-        navigate(from, { replace: true });
+        // The useEffect above will handle redirection after state update
       } else {
         toast({
           title: "Falha no login",
