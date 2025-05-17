@@ -61,3 +61,70 @@ export async function fetchImages() {
     return { images: [], error: 'Failed to read images directory' };
   }
 }
+
+// Fetch all stored product images from Supabase
+export async function fetchProductImagesFromStorage() {
+  try {
+    await ensureProductImagesBucket();
+    
+    const { data, error } = await supabase.storage
+      .from('product_images')
+      .list();
+      
+    if (error) {
+      console.error('Error fetching images from storage:', error);
+      return { images: [] };
+    }
+    
+    const images = data
+      .filter(item => !item.id.endsWith('/'))
+      .map(item => {
+        const { data: urlData } = supabase.storage
+          .from('product_images')
+          .getPublicUrl(item.name);
+          
+        return {
+          name: item.name,
+          url: urlData.publicUrl,
+          metadata: item.metadata
+        };
+      });
+      
+    return { images };
+  } catch (error) {
+    console.error('Error in fetchProductImagesFromStorage:', error);
+    return { images: [] };
+  }
+}
+
+// Upload image to Supabase storage
+export async function uploadProductImage(file: File) {
+  try {
+    await ensureProductImagesBucket();
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+    
+    const { error: uploadError, data: uploadData } = await supabase.storage
+      .from('product_images')
+      .upload(fileName, file);
+      
+    if (uploadError) {
+      console.error('Error uploading image:', uploadError);
+      return { success: false, error: uploadError.message };
+    }
+    
+    const { data: urlData } = supabase.storage
+      .from('product_images')
+      .getPublicUrl(fileName);
+      
+    return { 
+      success: true,
+      fileName,
+      url: urlData.publicUrl
+    };
+  } catch (error) {
+    console.error('Error in uploadProductImage:', error);
+    return { success: false, error: 'Failed to upload image' };
+  }
+}
