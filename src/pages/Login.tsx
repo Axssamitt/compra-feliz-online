@@ -16,9 +16,12 @@ const Login: React.FC = () => {
   // Get the intended destination after login
   const from = (location.state as any)?.from?.pathname || '/admin';
 
+  console.log('Login page - isAuthenticated:', isAuthenticated, 'redirect destination:', from);
+
   // If already authenticated, redirect once
   useEffect(() => {
     if (isAuthenticated) {
+      console.log('Already authenticated, redirecting to:', from);
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, from]);
@@ -26,6 +29,7 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    console.log('Attempting login with email:', email);
 
     try {
       const success = await login(email, password);
@@ -36,6 +40,7 @@ const Login: React.FC = () => {
           description: "Você foi autenticado com sucesso."
         });
         // The useEffect above will handle redirection after state update
+        console.log('Login successful, authentication state updated');
       } else {
         toast({
           title: "Falha no login",

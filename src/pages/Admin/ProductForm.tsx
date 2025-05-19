@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import ProductImageManager from '@/components/ProductImageManager';
-import { ensureProductImagesBucket } from '@/api/images';
+import { ensureProductImagesBucket } from '@/utils/imageUtils';
 import { 
   Dialog,
   DialogContent, 
@@ -217,7 +217,9 @@ const ProductForm = () => {
         result = await supabase
           .from('products')
           .update(productData)
-          .eq('id', parseInt(id as string)); // Convert string id to number
+          .eq('id', parseInt(id as string)) // Convert string id to number
+          .select()
+          .single();
           
         if (result.error) throw result.error;
         setSavedProductId(parseInt(id as string));
